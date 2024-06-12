@@ -56,7 +56,7 @@ type FS3FileAccesser interface {
 
 	// TEST 创建一个新的Bucket.
 	CreateBucket(bucketName, directory string, hashMethod HashMethod, hashLength int) (*FS3Bucket, error)
-
+	HasBucket(directory string) bool                                 // TEST 检查指定名称的Bucket是否存在
 	LoadBucket(directory string) (*FS3Bucket, error)                 // TEST 加载指定名称的Bucket
 	RecreateDB() error                                               // 重建数据库 重建DB,不会扫描,根据文件夹中的文件重新创建数据库. 也可以拿来初始化新桶
 	RescanDB() error                                                 // 重新扫描数据库  更新DB,不会删除文件,根据文件夹中的文件更新数据库
@@ -255,6 +255,13 @@ func (f *FS3Bucket) CreateBucket(bucketName, directory string, hashMethod HashMe
 	bucket.RecreateDB()
 
 	return bucket, nil
+}
+
+// TEST
+// 实现HasBucket接口. 检查指定名称的Bucket是否存在.
+func (f *FS3Bucket) HasBucket(directory string) bool {
+	_, err := os.Stat(directory + "/bucket.json")
+	return err == nil
 }
 
 // 实现LoadBucket接口. 加载现有Bucket.
