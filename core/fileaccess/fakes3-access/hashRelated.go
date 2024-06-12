@@ -17,11 +17,9 @@ import (
 
 // 计算指定路径的文件的哈希值
 func (f *FS3Bucket) ComputeHash(path string) (string, error) {
-	// 清理路径
-	cleanPath := filepath.Clean(path)
+	cleanPath := filepath.Clean(path) // 清理路径
 
-	// 打开文件
-	file, err := os.Open(cleanPath)
+	file, err := os.Open(cleanPath) // 打开文件
 	if err != nil {
 		fmt.Printf("Error opening file %q: %v\n", cleanPath, err)
 		return "", err

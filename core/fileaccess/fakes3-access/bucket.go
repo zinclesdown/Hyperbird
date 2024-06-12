@@ -57,18 +57,20 @@ type FS3FileAccesser interface {
 	// TEST 创建一个新的Bucket.
 	CreateBucket(bucketName, directory string, hashMethod HashMethod, hashLength int) (*FS3Bucket, error)
 
-	LoadBucket(directory string) (*FS3Bucket, error)         // TEST 加载指定名称的Bucket
-	RecreateDB() error                                       // 重建数据库 重建DB,不会扫描,根据文件夹中的文件重新创建数据库. 也可以拿来初始化新桶
-	RescanDB() error                                         // 重新扫描数据库  更新DB,不会删除文件,根据文件夹中的文件更新数据库
-	SaveFileFromIO(data io.Reader) (*fileDB, error)          // 从IO将数据保存，并返回一个表示该文件的FileDB实例
-	SaveFileFromPath(path string, cut bool) (*fileDB, error) // 从指定路径将数据保存，并返回一个表示该文件的FileDB实例. cut为true时,使用move而非copy
-	GetFile(hash string) (io.Reader, error)                  // 返回指定哈希值的文件的数据
-	DeleteFile(hash string) error                            // 删除指定哈希值的文件
-	SetExpire(hash string, expireAt time.Time) error         // 设置指定哈希值的文件的过期时间
-	ListHashs() (hashs []string, int64 error)                // 返回所有的文件的哈希值
-	GetSize(hash string) (int64, error)                      // 返回指定哈希值的文件的大小
-	ClearExpired() error                                     // 删除所有过期的文件
-	ComputeHash(path string) (string, error)                 // 计算指定路径的文件的哈希值,属性已经在FS3Bucket中定义
+	LoadBucket(directory string) (*FS3Bucket, error)                 // TEST 加载指定名称的Bucket
+	RecreateDB() error                                               // 重建数据库 重建DB,不会扫描,根据文件夹中的文件重新创建数据库. 也可以拿来初始化新桶
+	RescanDB() error                                                 // 重新扫描数据库  更新DB,不会删除文件,根据文件夹中的文件更新数据库
+	SaveFileFromIO(data io.Reader, filename string) (*fileDB, error) // 从IO将数据保存，并返回一个表示该文件的FileDB实例
+	SaveFileFromPath(path string, cut bool) (*fileDB, error)         // 从指定路径将数据保存，并返回一个表示该文件的FileDB实例. cut为true时,使用move而非copy
+	GetFileReader(hash string) (io.Reader, error)                    // 返回指定哈希值的文件的数据
+	DeleteFile(hash string) error                                    // 删除指定哈希值的文件
+	// SetExpire(hash string, expireAt time.Time) error         // 设置指定哈希值的文件的过期时间
+	GetAllFileHash() (hashs []string, int64 error) // 返回所有的文件的哈希值
+	GetFileSize(hash string) (int64, error)        // 返回指定哈希值的文件的大小
+	// ClearExpired() error                                     // 删除所有过期的文件
+	ComputeHash(path string) (string, error) // 计算指定路径的文件的哈希值,属性已经在FS3Bucket中定义
+	GetFileDatabase() (*gorm.DB, error)      // 返回文件数据库
+
 }
 
 // ========================================================================
@@ -80,6 +82,122 @@ type FS3FileAccesser interface {
 //
 //
 // ========================================================================
+
+// UNTESTED!
+// 从IO将数据保存，并返回一个表示该文件的FileDB实例
+func (f *FS3Bucket) SaveFileFromIO(r io.Reader, filename string) (*fileDB, error) {
+	// 获取数据库连接
+	db, err := f.GetFileDatabase()
+	if err != nil {
+		return nil, err
+	}
+
+	// 创建文件
+	file, err := os.Create(f.Directory + "/" + filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	// 将数据从 io.Reader 写入到文件
+	_, err = io.Copy(file, r)
+	if err != nil {
+		return nil, err
+	}
+
+	// 计算文件的哈希值
+	hash, err := f.ComputeHash(f.Directory + "/" + filename)
+	if err != nil {
+		return nil, err
+	}
+
+	// 创建一个新的 fileDB 对象
+	fileDB := &fileDB{
+		Hash: hash,
+		Path: f.Directory + "/" + filename,
+	}
+
+	// 将 fileDB 对象保存到数据库
+	if err := db.Create(fileDB).Error; err != nil {
+		return nil, err
+	}
+
+	return fileDB, nil
+}
+
+// 计算指定路径的文件的哈希值
+func (f *FS3Bucket) GetFileReader(hash string) (io.Reader, error) {
+	// 获取数据库连接
+	db, err := f.GetFileDatabase()
+	if err != nil {
+		return nil, err
+	}
+
+	var file fileDB
+	if err := db.Where("hash = ?", hash).First(&file).Error; err != nil {
+		return nil, fmt.Errorf("在数据库中找不到哈希为 %s 的文件: %v", hash, err)
+	}
+
+	reader, err := os.Open(file.Path)
+	if err != nil {
+		return nil, fmt.Errorf("打开文件 %s 时发生错误: %v", file.Path, err)
+	}
+
+	return reader, nil
+}
+
+func (f *FS3Bucket) GetAllFileHash() ([]string, error) {
+	// 获取数据库连接
+	db, err := f.GetFileDatabase()
+	if err != nil {
+		return nil, err
+	}
+
+	var files []fileDB
+	if err := db.Find(&files).Error; err != nil {
+		return nil, err
+	}
+
+	var hashes []string
+	for _, file := range files {
+		hashes = append(hashes, file.Hash)
+	}
+
+	return hashes, nil
+}
+
+// 获取一个桶内的文件的大小
+func (f *FS3Bucket) GetFileSize(hash string) (int64, error) {
+	// 获取数据库连接
+	db, err := f.GetFileDatabase()
+	if err != nil {
+		return 0, err
+	}
+
+	var file fileDB
+	if err := db.Where("hash = ?", hash).First(&file).Error; err != nil {
+		return 0, err
+	}
+
+	info, err := os.Stat(file.Path)
+	if err != nil {
+		return 0, err
+	}
+
+	return info.Size(), nil
+}
+
+// 获取一个桶的数据库
+func (f *FS3Bucket) GetFileDatabase() (*gorm.DB, error) {
+	// 连接到SQLite数据库
+	db, err := gorm.Open(sqlite.Open(f.Directory+"/filedb.db"), &gorm.Config{})
+	if err != nil {
+		fmt.Printf("连接到SQLite数据库时发生错误: %v\n", err)
+		return nil, err
+	}
+
+	return db, nil
+}
 
 // 实现CreateBucket接口.
 // Directory必须要么不存在, 要么是空文件夹. 所有桶内的文件和桶索引数据库都会被存储在这个directory中.
@@ -139,7 +257,6 @@ func (f *FS3Bucket) CreateBucket(bucketName, directory string, hashMethod HashMe
 	return bucket, nil
 }
 
-// TEST
 // 实现LoadBucket接口. 加载现有Bucket.
 func (f *FS3Bucket) LoadBucket(directory string) (*FS3Bucket, error) {
 	// 读取bucket.json
@@ -148,8 +265,6 @@ func (f *FS3Bucket) LoadBucket(directory string) (*FS3Bucket, error) {
 		fmt.Println("读取bucket.json时遇到错误:", err) // 添加调试信息
 		return nil, fmt.Errorf("读取bucket.json时遇到错误: %w", err)
 	}
-
-	// fmt.Println("bucket.json的内容:", string(bucketBytes)) // 添加调试信息
 
 	// 将JSON字符串解码为FS3Bucket结构
 	bucket := &FS3Bucket{}
@@ -160,15 +275,13 @@ func (f *FS3Bucket) LoadBucket(directory string) (*FS3Bucket, error) {
 	}
 
 	fmt.Println("解码后的bucket:", bucket) // 添加调试信息
-
 	return bucket, nil
 }
 
-// UNTESTED
 // 重建或初始化桶的数据库
 func (f *FS3Bucket) RecreateDB() error {
 	// 连接到SQLite数据库
-	db, err := gorm.Open(sqlite.Open(f.Directory+"/filedb.db"), &gorm.Config{})
+	db, err := f.GetFileDatabase()
 	if err != nil {
 		fmt.Printf("Error connecting to SQLite database: %v\n", err)
 		return err
@@ -194,12 +307,10 @@ func (f *FS3Bucket) RecreateDB() error {
 	return nil
 }
 
-// UNTESTED
 // 更新桶的数据库. 这将扫描桶中的所有文件，并将它们添加到数据库中.
-// 更新数据库
 func (f *FS3Bucket) RescanDB() error {
 	// 连接到SQLite数据库
-	db, err := gorm.Open(sqlite.Open(f.Directory+"/filedb.db"), &gorm.Config{})
+	db, err := f.GetFileDatabase()
 	if err != nil {
 		fmt.Printf("连接到SQLite数据库时发生错误: %v\n", err)
 		return err
@@ -277,7 +388,7 @@ func (f *FS3Bucket) SaveFileFromPath(path string, cut bool) (*fileDB, error) {
 	}
 
 	// 连接到SQLite数据库
-	db, err := gorm.Open(sqlite.Open(f.Directory+"/filedb.db"), &gorm.Config{})
+	db, err := f.GetFileDatabase()
 	if err != nil {
 		return nil, fmt.Errorf("连接到SQLite数据库时发生错误: %v", err)
 	}
@@ -356,7 +467,7 @@ func (f *FS3Bucket) SaveFileFromPath(path string, cut bool) (*fileDB, error) {
 // 以后再改吧.
 func (f *FS3Bucket) DeleteFile(hash string) error {
 	// 连接到SQLite数据库
-	db, err := gorm.Open(sqlite.Open(f.Directory+"/filedb.db"), &gorm.Config{})
+	db, err := f.GetFileDatabase()
 	if err != nil {
 		fmt.Printf("连接到SQLite数据库时发生错误: %v\n", err)
 		return err

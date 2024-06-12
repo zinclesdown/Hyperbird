@@ -12,12 +12,16 @@
 
 首先
 
-> git clone 这个项目的url
+```sh
+git clone https://github.com/zinclesdown/hyperbird.git
+```
 
 然后
 
-> go run .
+```sh
+go run .
+```
 
 # 那前端在哪?
 
-还没写,实在抱歉.
+还没写,真是抱歉 :(
