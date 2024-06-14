@@ -33,19 +33,19 @@ var LibraryDB *gorm.DB // 书籍库的数据库
 // 书籍文件的信息,保存在 booklibrary.db 数据库中
 type Book struct {
 	gorm.Model
-	BookId          string `json:"bookid"`
-	BookName        string `json:"bookname"`
-	Author          string `json:"author"`
-	Description     string `json:"description"`
-	BookFileType    string `json:"bookfiletype"`
-	BookFileHash    string `json:"bookfilehash"`
-	AvailableGroups string `json:"availablegroups"` // 分割符为逗号的字符串,空格被视为字符的一部分
+	BookId          string `json:"bookid" gorm:"column:book_id"`
+	BookName        string `json:"bookname" gorm:"column:book_name"`
+	Author          string `json:"author" gorm:"column:author"`
+	Description     string `json:"description" gorm:"column:description"`
+	BookFileType    string `json:"bookfiletype" gorm:"column:book_file_type"`
+	BookFileHash    string `json:"bookfilehash" gorm:"column:book_file_hash"`
+	AvailableGroups string `json:"availablegroups" gorm:"column:available_groups"`
 }
 
 // 书籍库的访问接口
 type BookLibraryServerAccessor interface {
 	GetAllBookIds(page int, pageSize int) ([]string, error)
-	GetBookInfo(bookid string) (Book, error)
+	GetBookInfoById(bookid string) (Book, error)
 	GetBookFileIOReader(bookid string) (FileType, io.Reader, error)
 }
 
@@ -122,4 +122,14 @@ func (b *Book) AddBook(book Book) error {
 	}
 
 	return nil
+}
+
+// 获取书籍信息
+func (b *Book) GetBookInfoById(bookid string) (Book, error) {
+	var book Book
+	err := LibraryDB.Where("book_id = ?", bookid).First(&book).Error
+	if err != nil {
+		return Book{}, err
+	}
+	return book, nil
 }

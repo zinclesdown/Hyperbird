@@ -35,6 +35,33 @@ func Test() {
 	fmt.Println("  读取书籍ID:", bookids, err)
 
 	// 添加测试用书籍（PDF）
+	// color.White("  添加测试用书籍（PDF）...")
+	pdf_path := "./tests/booklibrary/files/testbook.pdf"
+	pdf_path2 := "tests/booklibrary/files/test2.pdf"
+
+	// 添加书籍到桶里
+	file, err := Bucket.SaveFileFromPath(pdf_path, false)
+	warn("添加书籍到桶里遇到了错误：", err)
+	fmt.Println("向桶里添加了文件：", file.Hash)
+	b.AddBook(Book{BookId: "TestBooksID",
+		BookFileHash: file.Hash})
+
+	file2, err := Bucket.SaveFileFromPath(pdf_path2, false)
+	warn("添加书籍到桶里遇到了错误：", err)
+	fmt.Println("向桶里添加了文件：", file.Hash)
+	b.AddBook(Book{BookId: "TestBooksID2",
+		BookFileHash: file2.Hash})
+
+	// 读取书籍列表
+	bookids, err = b.GetAllBookIds(0, 10)
+	fmt.Println("  读取书籍ID:", bookids, err)
+
+	// 读取书籍(1)
+	getTestBook, err := b.GetBookInfoById("TestBooksID")
+	fmt.Println("  读取书籍信息:", getTestBook)
+	fmt.Println("书籍名称：", getTestBook.BookName)
+	fmt.Println("书籍Hash：", getTestBook.BookFileHash)
+	assert("  读取书籍信息遇到错误:", err)
 
 	color.Green("[图书管理系统测试完毕]")
 
