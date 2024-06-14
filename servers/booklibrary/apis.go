@@ -17,3 +17,5 @@ type AdminAPI interface {
 	UpdateBookInfo(ctx UserContext, book Book) error   // 更新书籍信息
 	DeleteBook(ctx UserContext, bookid string) error   // 删除书籍
 }
+
+//

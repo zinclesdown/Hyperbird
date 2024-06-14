@@ -62,17 +62,14 @@ func test_bucket_db_functionalities() {
 	// 把文件加入桶中
 	_, err = bucket.SaveFileFromPath(file1Path, false)
 	checkErr("保存文件时遇到错误:", err)
-
 	_, err = bucket.SaveFileFromPath(file2Path, false)
 	checkErr("保存文件时遇到错误:", err)
-
 	_, err = bucket.SaveFileFromPath(file3Path, false)
 	checkErr("保存文件时遇到错误:", err)
 
-	// 读取文件
+	// 读取文件，打印哈希
 	fmt.Println("> 读取文件测试 :")
 	hashs, err := bucket.GetAllFileHash()
-
 	checkErr("读取文件时遇到错误:", err)
 	printArray(hashs)
 
@@ -95,6 +92,12 @@ func test_bucket_db_functionalities() {
 	// 最后尝试删除第一个文件.
 	err = bucket.DeleteFile(hashs[0])
 	checkErr("删除文件时遇到错误:", err)
+
+	// 打印所有文件的哈希
+	fmt.Println("> 读取文件测试 :")
+	hashs, err = bucket.GetAllFileHash()
+	checkErr("读取文件时遇到错误:", err)
+	printArray(hashs)
 
 }
 

@@ -12,5 +12,14 @@ const (
 func Runservers() {
 	// 服务器启动
 	// 服务器启动
+
 	booklibrary.RunServer()
+}
+
+func PreTestServer() {
+	booklibrary.PreTestBeforeServerStart()
+}
+
+func TestServers() {
+	booklibrary.Test()
 }

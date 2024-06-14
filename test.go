@@ -16,6 +16,8 @@ func testAll() {
 		fakes3Access.Test()
 
 		fmt.Println("运行服务器...")
+		servers.PreTestServer()
 		servers.Runservers()
+		servers.TestServers()
 	}
 }

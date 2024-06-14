@@ -19,7 +19,6 @@ import (
 // 在本地的虚拟的S3文件系统，通过两层文件夹(每层分别保存Hash的前两位，共4位)来模拟S3的Bucket和Object
 // 文件夹分层，减少单个文件夹下的文件数量.该系统是为了模拟S3的Bucket和Object的文件系统
 //
-// 我参考了hath的缓存存储方式
 // 每个被视作FakeS3Folder的文件夹，都是一个Bucket，它包括以下结构：
 // BucketFolder
 // 	|- files
@@ -70,7 +69,7 @@ type FS3FileAccesser interface {
 	// ClearExpired() error                                     // 删除所有过期的文件
 	ComputeHash(path string) (string, error) // 计算指定路径的文件的哈希值,属性已经在FS3Bucket中定义
 	GetFileDatabase() (*gorm.DB, error)      // 返回文件数据库
-
+	HasFile(hash string) bool                // 检查指定哈希值的文件是否存在
 }
 
 // ========================================================================
@@ -496,4 +495,35 @@ func (f *FS3Bucket) DeleteFile(hash string) error {
 	}
 
 	return nil
+}
+
+// TEST
+func (f *FS3Bucket) HasFile(hash string) bool {
+	// 连接到SQLite数据库
+	db, err := f.GetFileDatabase()
+	if err != nil {
+		fmt.Printf("连接到SQLite数据库时发生错误: %v\n", err)
+		return false
+	}
+
+	var fileRecord fileDB
+	if err := db.Where("hash = ?", hash).First(&fileRecord).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return false
+		}
+		fmt.Printf("查询数据库时发生错误: %v\n", err)
+		return false
+	}
+
+	// 确认是否能访问
+	if _, err := os.Stat(fileRecord.Path); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+		fmt.Printf("检查文件 %q 时发生错误: %v\n", fileRecord.Path, err)
+
+		return false
+	}
+
+	return true
 }
