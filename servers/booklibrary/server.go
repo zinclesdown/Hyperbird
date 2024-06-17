@@ -67,7 +67,7 @@ type BookLibraryManageFunctions interface {
 // 初始化书籍库
 // 全局变量Bucket会在这里被设置.
 // 全局变量Bucket会在这里被设置.
-func RunServer() {
+func InitServer() {
 	// 初始化书籍文件库
 	f := &FS3.FS3Bucket{}
 	if !f.HasBucket(BookLibraryBucketPath) { // 如果没有书籍文件库,则创建一个

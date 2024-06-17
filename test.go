@@ -17,7 +17,7 @@ func testAll() {
 
 		fmt.Println("运行服务器...")
 		servers.PreTestServer()
-		servers.Runservers()
+		servers.InitServers()
 		servers.TestServers()
 	}
 }

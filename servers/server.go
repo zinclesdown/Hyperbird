@@ -1,21 +1,27 @@
 package servers
 
-import "hyperbird/servers/booklibrary"
-
 // 此包用于管理各个API服务器的启动和关闭
 
-// API基础地址
-const (
-	APIBasePath = "/api"
+import (
+	"hyperbird/servers/booklibrary"
+	"hyperbird/servers/ginserver"
 )
 
-func Runservers() {
-	// 服务器启动
-	// 服务器启动
+// 开始监听所有服务器的API。在服务器完全初始化后调用
+func StartAllListen() {
+	ginserver.BeforeRun()
 
-	booklibrary.RunServer()
+	ginserver.Run()
 }
 
+// 服务器启动前的初始化
+func InitServers() {
+	booklibrary.InitServer()
+
+	StartAllListen()
+}
+
+// 清理目录
 func PreTestServer() {
 	booklibrary.PreTestBeforeServerStart()
 }
