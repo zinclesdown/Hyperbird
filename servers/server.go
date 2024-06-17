@@ -8,7 +8,8 @@ import (
 )
 
 // 开始监听所有服务器的API。在服务器完全初始化后调用
-func StartAllListen() {
+// 接受参数： 监听IP，监听端口
+func StartAllListen(listenIp, listenPort string) {
 	ginserver.BeforeRun()
 
 	// 注册API
@@ -17,14 +18,12 @@ func StartAllListen() {
 	// xxx.RegisterAPIs()
 	// xxx.RegisterAPIs()
 
-	ginserver.Run("8080") // 暂定使用8080端口，后面可以改吧
+	ginserver.Run(listenIp, listenPort) // 暂定使用8080端口，后面可以改吧
 }
 
 // 服务器启动前的初始化
 func InitServers() {
 	booklibrary.InitServer()
-
-	StartAllListen()
 }
 
 // 清理目录

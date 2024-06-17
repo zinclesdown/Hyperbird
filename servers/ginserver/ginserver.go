@@ -2,6 +2,7 @@ package ginserver
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,8 +22,14 @@ func BeforeRun() {
 	Listen("/api", hello, "路径为/api的测试API")
 }
 
-func Run(port string) {
-	server.Run(":" + port)
+var ListenIp, ListenPort string // 记录监听的IP和端口
+
+// 监听IP和端口，开始运行服务器
+func Run(listenip, listenport string) {
+	ListenIp = listenip
+	ListenPort = listenport
+
+	server.Run(":" + ListenPort)
 }
 
 // 接受一个API地址和一个函数，开始监听API地址，如果有请求则调用函数。
@@ -39,9 +46,16 @@ func Listen(apipath string, f func(c *gin.Context), comment string) {
 func hello(c *gin.Context) {
 	// 显示所有已注册的地址、注释
 	var allroutes string
+	allroutes += "<h1>Hyperbird Ginserver API Debug Panel</h1>"
+	allroutes += "<p>所有已注册的可访问API均在下面的目录里。</p>"
+	allroutes += "<p>监听IP: " + ListenIp + "</p>"
+	allroutes += "<p>监听端口: " + ListenPort + "</p>"
+	allroutes += "<table>"
 	for _, route := range routes {
-		allroutes += fmt.Sprintf("Path: %-20s\t Comments: %-20s\n", route.Path, route.Comment)
+		allroutes += fmt.Sprintf("<tr> <td><a href='%s' target='_blank'>%s</a></td> <td>%s</td></tr>", route.Path, route.Path, route.Comment)
+		// allroutes += "<br/>"
 	}
-	c.String(200, "Welcome to server API panel!\nAvailable registered APIs:\n\n"+allroutes)
-
+	allroutes += "</table>"
+	html := allroutes
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
 }

@@ -96,7 +96,7 @@ func InitServer() {
 }
 
 // 获取库中所有电子书籍的ID
-func (b *Book) GetAllBookIds(page int, pageSize int) ([]string, error) {
+func GetAllBookIds(page int, pageSize int) ([]string, error) {
 	var bookids []string
 	err := LibraryDB.Model(&Book{}).Limit(pageSize).Offset(page*pageSize).Pluck("BookId", &bookids).Error
 
@@ -107,7 +107,7 @@ func (b *Book) GetAllBookIds(page int, pageSize int) ([]string, error) {
 }
 
 // 向书籍库中添加一本书。book结构必须完整，文件hash必须正确。
-func (b *Book) AddBook(book Book) error {
+func AddBook(book Book) error {
 
 	// 检查书籍的哈希是否在FS3文件系统中存在。使用Bucket.HasFile()检查是否存在文件
 	// 如果不存在,则返回错误
@@ -125,7 +125,7 @@ func (b *Book) AddBook(book Book) error {
 }
 
 // 获取书籍信息
-func (b *Book) GetBookInfoById(bookid string) (Book, error) {
+func GetBookInfoById(bookid string) (Book, error) {
 	var book Book
 	err := LibraryDB.Where("book_id = ?", bookid).First(&book).Error
 	if err != nil {

@@ -30,8 +30,7 @@ func Test() {
 	fmt.Println("  初始化书籍库...")
 
 	// 读取书籍
-	b := &Book{}
-	bookids, err := b.GetAllBookIds(1, 10)
+	bookids, err := GetAllBookIds(1, 10)
 	fmt.Println("  读取书籍ID:", bookids, err)
 
 	// 添加测试用书籍（PDF）
@@ -43,21 +42,21 @@ func Test() {
 	file, err := Bucket.SaveFileFromPath(pdf_path, false)
 	warn("添加书籍到桶里遇到了错误：", err)
 	fmt.Println("向桶里添加了文件：", file.Hash)
-	b.AddBook(Book{BookId: "TestBooksID",
+	AddBook(Book{BookId: "TestBooksID",
 		BookFileHash: file.Hash})
 
 	file2, err := Bucket.SaveFileFromPath(pdf_path2, false)
 	warn("添加书籍到桶里遇到了错误：", err)
 	fmt.Println("向桶里添加了文件：", file.Hash)
-	b.AddBook(Book{BookId: "TestBooksID2",
+	AddBook(Book{BookId: "TestBooksID2",
 		BookFileHash: file2.Hash})
 
 	// 读取书籍列表
-	bookids, err = b.GetAllBookIds(0, 10)
+	bookids, err = GetAllBookIds(0, 10)
 	fmt.Println("  读取书籍ID:", bookids, err)
 
 	// 读取书籍(1)
-	getTestBook, err := b.GetBookInfoById("TestBooksID")
+	getTestBook, err := GetBookInfoById("TestBooksID")
 	fmt.Println("  读取书籍信息:", getTestBook)
 	fmt.Println("书籍名称：", getTestBook.BookName)
 	fmt.Println("书籍Hash：", getTestBook.BookFileHash)
