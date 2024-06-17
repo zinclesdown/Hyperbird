@@ -11,7 +11,13 @@ import (
 func StartAllListen() {
 	ginserver.BeforeRun()
 
-	ginserver.Run()
+	// 注册API
+	booklibrary.RegisterAPIs()
+	// xxx.RegisterAPIs()
+	// xxx.RegisterAPIs()
+	// xxx.RegisterAPIs()
+
+	ginserver.Run("8080") // 暂定使用8080端口，后面可以改吧
 }
 
 // 服务器启动前的初始化
