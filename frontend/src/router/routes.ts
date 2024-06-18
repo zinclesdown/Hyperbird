@@ -18,6 +18,10 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/BookLibrary.vue'),
       },
       {
+        path: 'book_library/info',
+        component: () => import('pages/BookInfo.vue'),
+      },
+      {
         path: 'library_browser',
         component: () => import('pages/LibraryBrowser.vue'),
       },
