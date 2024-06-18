@@ -4,6 +4,8 @@ go 1.22.4
 
 require gorm.io/gorm v1.25.10
 
+require github.com/gin-contrib/cors v1.7.2 // indirect
+
 require (
 	github.com/fatih/color v1.17.0
 	github.com/mattn/go-colorable v0.1.13 // indirect

@@ -10,7 +10,8 @@ import (
 // 开始监听所有服务器的API。在服务器完全初始化后调用
 // 接受参数： 监听IP，监听端口
 func StartAllListen(listenIp, listenPort string) {
-	ginserver.BeforeRun()
+
+	ginserver.BeforeRun(true) // 允许所有的跨域请求
 
 	// 注册API
 	booklibrary.RegisterAPIs()

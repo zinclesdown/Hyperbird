@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,7 +18,15 @@ type RouteInfo struct {
 
 var routes []RouteInfo // 储存已监听的API地址和函数
 
-func BeforeRun() {
+func BeforeRun(allowAllOrigins bool) {
+	config := cors.DefaultConfig()
+	if allowAllOrigins {
+		config.AllowAllOrigins = true
+	} else {
+		config.AllowOrigins = []string{"http://localhost", "http://0.0.0.0", "http://127.0.0.1"}
+	}
+	server.Use(cors.New(config))
+
 	Listen("/", hello, "路径为根/的测试API")
 	Listen("/api", hello, "路径为/api的测试API")
 }

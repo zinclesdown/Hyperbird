@@ -11,7 +11,7 @@
         <q-tabs v-model="tab" inline-label class="full-width">
           <q-route-tab name="index" label="首页" icon="dashboard" stacked to="/" />
           <q-route-tab name="home" label="主页" icon="home" stacked to="/home" />
-          <q-route-tab name="booklibrary" label="图书馆" icon="menu_book" stacked to="/home" />
+          <q-route-tab name="booklibrary" label="图书馆" icon="menu_book" stacked to="/book_library" />
           <q-route-tab name="medialibrary" label="媒体库" icon="video_library" stacked to="/library_browser" />
           <q-route-tab name="file" label="文件" icon="folder" stacked to="/file_browser" />
           <q-route-tab name="about" label="关于" icon="info" stacked to="/about" />

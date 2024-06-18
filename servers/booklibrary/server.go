@@ -35,6 +35,7 @@ type Book struct {
 	gorm.Model
 	BookId          string `json:"bookid" gorm:"column:book_id"`
 	BookName        string `json:"bookname" gorm:"column:book_name"`
+	BookImagePath   string `json:"bookimagepath" gorm:"column:book_image_path"`
 	Author          string `json:"author" gorm:"column:author"`
 	Description     string `json:"description" gorm:"column:description"`
 	BookFileType    string `json:"bookfiletype" gorm:"column:book_file_type"`
@@ -65,7 +66,6 @@ type BookLibraryManageFunctions interface {
 }
 
 // 初始化书籍库
-// 全局变量Bucket会在这里被设置.
 // 全局变量Bucket会在这里被设置.
 func InitServer() {
 	// 初始化书籍文件库
