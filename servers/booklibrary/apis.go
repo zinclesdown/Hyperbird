@@ -31,11 +31,11 @@ import (
 // }
 
 const ( // 用户/游客API地址
-	API_USER_LOGIN               string = "/api/booklibrary/login"
-	API_USER_GET_USER_INFO       string = "/api/booklibrary/getuserinfo"
-	API_USER_GET_BOOK_INFO_BY_ID string = "/api/booklibrary/getbookinfobyid"
-	API_USE_GET_ALL_BOOK_IDS     string = "/api/booklibrary/getallbookids"
-	API_ALIVE                    string = "/api/booklibrary/"
+	// API_USER_LOGIN               string = "/api/booklibrary/login"
+	// API_USER_GET_USER_INFO       string = "/api/booklibrary/getuserinfo"
+	API_USER_GET_BOOK_INFO_BY_ID string = "/api/book_library/get_book_info_by_id"
+	API_USE_GET_ALL_BOOK_IDS     string = "/api/book_library/get_all_bookids"
+	API_ALIVE                    string = "/api/book_library/"
 
 	API_GET_BOOKS_SHORT_INFO string = "/api/book_library/get_books_short_info"
 )

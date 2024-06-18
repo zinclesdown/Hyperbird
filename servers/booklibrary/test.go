@@ -43,12 +43,34 @@ func Test() {
 	warn("添加书籍到桶里遇到了错误：", err)
 	fmt.Println("向桶里添加了文件：", file.Hash)
 	AddBook(Book{BookId: "TestBooksID",
+		BookName:     "第一本测试书籍",
 		BookFileHash: file.Hash})
 
 	file2, err := Bucket.SaveFileFromPath(pdf_path2, false)
 	warn("添加书籍到桶里遇到了错误：", err)
 	fmt.Println("向桶里添加了文件：", file.Hash)
 	AddBook(Book{BookId: "TestBooksID2",
+		BookName:     "第二本测试书籍",
+		BookFileHash: file2.Hash})
+
+	// 添加重复书籍
+	AddBook(Book{BookId: "TestBooksID3withfile2",
+		BookName:     "第三本克隆测试书籍",
+		BookFileHash: file2.Hash})
+
+	AddBook(Book{BookId: "TestBooksID4withfile2",
+		BookName:     "第四本克隆测试书籍",
+		BookFileHash: file2.Hash})
+	AddBook(Book{BookId: "TestBooksID5withfile2",
+		BookName:     "第五本克隆测试书籍",
+		BookFileHash: file2.Hash})
+
+	AddBook(Book{BookId: "TestBooksID6withfile2",
+		BookName:     "第六本克隆测试书籍",
+		BookFileHash: file2.Hash})
+
+	AddBook(Book{BookId: "TestBooksID7withfile2",
+		BookName:     "第七本克隆测试书籍",
 		BookFileHash: file2.Hash})
 
 	// 读取书籍列表
