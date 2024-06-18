@@ -1,1 +1,9 @@
 // app global css in SCSS form
+
+// 添加Tailwindcss样式
+// 似乎会被Quasar样式覆盖，如有冲突会以Quasar样式为准
+// 我也不清楚优先级,我用tailwind就是为了不去碰tmd css
+// 去tmd css， 去tmd scss
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
