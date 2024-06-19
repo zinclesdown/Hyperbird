@@ -37,8 +37,12 @@ const ( // 用户/游客API地址
 	API_USE_GET_ALL_BOOK_IDS     string = "/api/book_library/get_all_bookids"
 	API_ALIVE                    string = "/api/book_library/"
 
-	API_GET_BOOKS_SHORT_INFO string = "/api/book_library/get_books_short_info"
+	API_GET_BOOKS_SHORT_INFO    string = "/api/book_library/get_books_short_info"
+	API_SERVE_BOOK_FILE_BY_HASH string = "/api/book_library/serve_book_file_by_hash"
+	API_SERVE_BOOK_FILE_BY_ID   string = "/api/book_library/serve_book_file_by_id"
 )
+
+// apiServeBookFile
 
 const ( // 管理员/开发者API地址
 	API_ADMIN_GET_ALL_BOOKS string = "/api/booklibrary/admin/getallbooks"
@@ -54,7 +58,10 @@ func RegisterAPIs() {
 
 	//apiGetBooksShortInfo
 	ginserver.Listen(API_GET_BOOKS_SHORT_INFO, apiGetBooksShortInfo, "返回某一页的书籍ID与书籍的名称、图像。接受参数：page:int, page_size:int.")
-	// 仅供开发者调试的API
+
+	//apiServeBookFile
+	ginserver.Listen(API_SERVE_BOOK_FILE_BY_HASH, apiServeBookFileByHash, "提供书籍文件的流式,接受book_file_hash作为输入")
+	ginserver.Listen(API_SERVE_BOOK_FILE_BY_ID, apiServeBookFileById, "提供书籍文件的流式,接受book_id作为输入")
 }
 
 //
@@ -151,4 +158,37 @@ func apiGetBookInfoById(c *gin.Context) {
 
 	// 返回书籍信息
 	c.JSON(http.StatusOK, gin.H{"book": book})
+}
+
+// 提供书籍文件的流式传输服务, 接受 book_file_hash作为输入。
+func apiServeBookFileByHash(c *gin.Context) {
+	// 获取书籍文件
+	// 书籍文件的哈希值
+	bookFileHash := c.Query("book_file_hash")
+	err := Bucket.ServeFile(c.Writer, c.Request, bookFileHash)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		color.Yellow("apiServeBookFile::ServeFile()::服务流失传输文件遇到了错误:", err)
+		return
+	}
+}
+
+// 提供书籍文件的流式传输服务, 接受 book_id作为输入。
+func apiServeBookFileById(c *gin.Context) {
+	// 获取书籍文件
+	// 书籍ID
+	bookID := c.Query("book_id")
+	book, err := GetBookInfoById(bookID) // Book, Error
+	if err != nil {
+		// 如果出错，返回错误信息
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = Bucket.ServeFile(c.Writer, c.Request, book.BookFileHash)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		color.Yellow("apiServeBookFile::ServeFile()::服务流失传输文件遇到了错误: id=", bookID, ",错误：", err)
+		return
+	}
 }

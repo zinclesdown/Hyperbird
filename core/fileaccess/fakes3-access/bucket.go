@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -61,7 +63,6 @@ type FS3FileAccesser interface {
 	RescanDB() error                                                 // 重新扫描数据库  更新DB,不会删除文件,根据文件夹中的文件更新数据库
 	SaveFileFromIO(data io.Reader, filename string) (*fileDB, error) // 从IO将数据保存，并返回一个表示该文件的FileDB实例
 	SaveFileFromPath(path string, cut bool) (*fileDB, error)         // 从指定路径将数据保存，并返回一个表示该文件的FileDB实例. cut为true时,使用move而非copy
-	GetFileReader(hash string) (io.Reader, error)                    // 返回指定哈希值的文件的数据
 	DeleteFile(hash string) error                                    // 删除指定哈希值的文件
 	// SetExpire(hash string, expireAt time.Time) error         // 设置指定哈希值的文件的过期时间
 	GetAllFileHash() (hashs []string, int64 error) // 返回所有的文件的哈希值
@@ -70,6 +71,11 @@ type FS3FileAccesser interface {
 	ComputeHash(path string) (string, error) // 计算指定路径的文件的哈希值,属性已经在FS3Bucket中定义
 	GetFileDatabase() (*gorm.DB, error)      // 返回文件数据库
 	HasFile(hash string) bool                // 检查指定哈希值的文件是否存在
+
+	PrintBucketStatus() // 打印桶的状态
+
+	OpenFile(hash string) (*os.File, error)                              // 返回指定哈希值的文件的数据
+	ServeFile(w http.ResponseWriter, r *http.Request, hash string) error // 提供流式提供文件的功能，供前端的视频播放器/音频播放器/PDF查看器等使用
 }
 
 // ========================================================================
@@ -124,9 +130,8 @@ func (f *FS3Bucket) SaveFileFromIO(r io.Reader, filename string) (*fileDB, error
 	return fileDB, nil
 }
 
-// 计算指定路径的文件的哈希值
-func (f *FS3Bucket) GetFileReader(hash string) (io.Reader, error) {
-	// 获取数据库连接
+// OpenFile 打开指定Hash的文件，返回*os.File
+func (f *FS3Bucket) OpenFile(hash string) (*os.File, error) {
 	db, err := f.GetFileDatabase()
 	if err != nil {
 		return nil, err
@@ -143,6 +148,40 @@ func (f *FS3Bucket) GetFileReader(hash string) (io.Reader, error) {
 	}
 
 	return reader, nil
+}
+
+func PrintBucketStatus(f *FS3Bucket) {
+	fmt.Println("BucketName:", f.BucketName)
+	fmt.Println("Directory:", f.Directory)
+	fmt.Println("HashMethod:", f.HashMethod)
+	fmt.Println("HashLength:", f.HashLength)
+	fmt.Println("CreatedAt:", f.CreatedAt)
+}
+
+// ServeFile 提供流式提供文件的功能，供前端的视频播放器/音频播放器/PDF查看器等使用
+func (f *FS3Bucket) ServeFile(w http.ResponseWriter, r *http.Request, hash string) error {
+	file, err := f.OpenFile(hash)
+	if err != nil {
+		return err
+	}
+
+	// 获取文件信息
+	info, err := file.Stat()
+	if err != nil {
+		return err
+	}
+
+	// 设置必要的响应头
+	contentType := mime.TypeByExtension(filepath.Ext(info.Name()))
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+	w.Header().Set("Content-Type", contentType)
+
+	// 使用 http.ServeContent 发送文件
+	http.ServeContent(w, r, info.Name(), info.ModTime(), file)
+
+	return nil
 }
 
 func (f *FS3Bucket) GetAllFileHash() ([]string, error) {

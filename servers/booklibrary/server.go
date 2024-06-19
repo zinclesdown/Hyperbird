@@ -6,7 +6,9 @@ import (
 	"fmt"
 	FS3 "hyperbird/core/fileaccess/fakes3-access"
 	"io"
+	"os"
 
+	"github.com/fatih/color"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -33,14 +35,14 @@ var LibraryDB *gorm.DB // 书籍库的数据库
 // 书籍文件的信息,保存在 booklibrary.db 数据库中
 type Book struct {
 	gorm.Model
-	BookId          string `json:"bookid" gorm:"column:book_id"`
-	BookName        string `json:"bookname" gorm:"column:book_name"`
-	BookImagePath   string `json:"bookimagepath" gorm:"column:book_image_path"`
+	BookId          string `json:"book_id" gorm:"column:book_id"`
+	BookName        string `json:"book_name" gorm:"column:book_name"`
+	BookImagePath   string `json:"book_imagepath" gorm:"column:book_image_path"`
 	Author          string `json:"author" gorm:"column:author"`
 	Description     string `json:"description" gorm:"column:description"`
-	BookFileType    string `json:"bookfiletype" gorm:"column:book_file_type"`
-	BookFileHash    string `json:"bookfilehash" gorm:"column:book_file_hash"`
-	AvailableGroups string `json:"availablegroups" gorm:"column:available_groups"`
+	BookFileType    string `json:"book_file_type" gorm:"column:book_file_type"`
+	BookFileHash    string `json:"book_file_hash" gorm:"column:book_file_hash"`
+	AvailableGroups string `json:"available_groups" gorm:"column:available_groups"`
 }
 
 // 书籍库的访问接口
@@ -132,4 +134,29 @@ func GetBookInfoById(bookid string) (Book, error) {
 		return Book{}, err
 	}
 	return book, nil
+}
+
+// 获取书籍文件的 *os.File
+func GetBookFile(bookid string) (*os.File, error) {
+	bucket := &FS3.FS3Bucket{}
+	bucket, err := bucket.LoadBucket(BookLibraryBucketPath)
+
+	if err != nil {
+		color.Red("GetBookFile:加载书籍库时遇到错误")
+		return nil, err
+	}
+
+	book, err := GetBookInfoById(bookid)
+	if err != nil {
+		color.Red("GetBookFile:获取书籍信息时遇到错误")
+		return nil, err
+	}
+
+	file, err := bucket.OpenFile(book.BookFileHash)
+	if err != nil {
+		color.Red("GetBookFile:打开书籍文件时遇到错误")
+		return nil, err
+	}
+
+	return file, nil
 }
