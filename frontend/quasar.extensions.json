@@ -1,0 +1,13 @@
+{
+  "@quasar/qwindow": {},
+  "@quasar/qmarkdown": {
+    "import_md": true
+  },
+  "@quasar/qcalendar": {},
+  "@quasar/qscroller": {},
+  "@quasar/qflashcard": {},
+  "@quasar/qmediaplayer": {},
+  "@quasar/qoverlay": {},
+  "@quasar/qactivity": {},
+  "@quasar/qiconpicker": {}
+}
