@@ -17,6 +17,7 @@
     "@quasar/extras": "^1.16.4",
     "axios": "^1.2.1",
     "path-browserify": "^1.0.1",
+    "pdfjs-dist": "^4.3.136",
     "pinia": "^2.0.11",
     "postcss": "^8.4.38",
     "quasar": "^2.16.0",

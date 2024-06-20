@@ -23,7 +23,8 @@
     <q-card-section>
       <div class="flex justify-end">
         <!-- 功能性按钮们 -->
-        <q-btn class="m-2 p-3" icon="menu_book">阅读</q-btn>
+        <q-btn class="m-2 p-3" icon="menu_book" @click="_on_online_read_clicked">在线阅读</q-btn>
+        <q-btn class="m-2 p-3" icon="menu_book" @click="_on_browser_read_clicked">浏览器阅读</q-btn>
         <q-btn class="m-2 p-3" icon="download">下载</q-btn>
         <q-btn class="m-2 p-3" icon="favorite">收藏</q-btn>
       </div>
@@ -112,4 +113,36 @@ async function refreshPage(book_id: string): Promise<BookInfo> {
 onMounted(async () => {
   curBookInfo.value = await refreshPage(curBookId.value);
 });
+
+//
+// ======== PDF 浏览器相关
+//
+
+//
+console.log('PDF部分');
+
+// 格式化该URL, 供q-pdf-viewer插件使用
+// 使用URLSearchParams对象
+
+let pdfFileUrl = ref<string>();
+if (book_id != null) {
+  let _pdfFileURL = new URL(urlStore.bookLibraryGetServedBookfileById);
+  _pdfFileURL.searchParams.append('book_id', book_id);
+  pdfFileUrl.value = _pdfFileURL.toString();
+} else {
+  console.error('book_id is null!');
+}
+
+console.log('欲访问PDF文件的URL为:', pdfFileUrl.value);
+
+function _on_online_read_clicked() {
+  alert('在线阅读功能尚未实现！');
+  console.log('在线阅读功能尚未实现！');
+}
+
+function _on_browser_read_clicked() {
+  console.log('浏览器阅读功能尚未实现！');
+  console.log('pdfFileUrl:', pdfFileUrl.value);
+  window.open(pdfFileUrl.value, '_blank');
+}
 </script>
