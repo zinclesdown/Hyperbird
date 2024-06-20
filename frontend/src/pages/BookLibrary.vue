@@ -78,59 +78,13 @@
 </style>
 
 <script lang="ts" setup>
-// 定义接口
-interface BookShortInfo {
-  book_id: string;
-  book_name: string;
-}
-
-import {} from 'pinia';
-import { apiUrlStorage } from './../stores/api-urls';
-import axios from 'axios';
+import { GetBooksShortInfo, BookShortInfo } from '../api-methods';
 import { Ref, onMounted, ref } from 'vue';
-
-// Pinia, 读取urlStore的API地址
-const urlStore = apiUrlStorage();
-
-const GET_BOOK_URL = urlStore.bookLibraryGetBooksShortInfo;
-
-// 书籍结构体信息：
-// {book_id:int, book_name:string, book_image_path:string}
-// 书籍ID，书籍名称，书籍封面图片路径
-
-// 接口
-interface BookShortInfo {
-  book_id: string;
-  book_name: string;
-  book_image_path: string;
-}
-
-interface BookShortInfoResponse {
-  books: BookShortInfo[];
-}
-
-// 获取书籍信息。第一页为page=0，每页显示10本书
-async function get_books_shortinfo(page: number = 0, page_size: number = 10): Promise<BookShortInfoResponse> {
-  try {
-    const response = await axios.get<BookShortInfoResponse>(GET_BOOK_URL, {
-      params: {
-        page: page,
-        page_size: page_size,
-      },
-    });
-    console.log('获取书籍信息：', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('在向服务器请求书籍信息时发生错误：', error);
-    return { books: [] };
-  }
-}
-
 // 记录书籍信息
 const curpageBooksInfo: Ref<BookShortInfo[]> = ref([]);
 
 async function refreshPage(page: number, page_size: number) {
-  const data = await get_books_shortinfo(page, page_size);
+  const data = await GetBooksShortInfo(page, page_size);
   curpageBooksInfo.value = data.books; // 使用新的接口
 
   // 更新vue内的显示
@@ -140,6 +94,8 @@ async function refreshPage(page: number, page_size: number) {
 }
 
 onMounted(() => {
+  1720;
+
   refreshPage(0, 10);
   console.log('mounted');
 });

@@ -18,3 +18,8 @@ export const apiUrlStorage = defineStore('apiUrls', {
     bookLibraryGetServedBookfileById: 'http://127.0.0.1:8080/api/book_library/serve_book_file_by_id',
   }),
 });
+
+// 使用用例：
+// import { apiUrlStorage } from './../stores/api-urls';
+// const urlStore = apiUrlStorage();
+// const SOME_URL = urlStore.XXXXXXX;

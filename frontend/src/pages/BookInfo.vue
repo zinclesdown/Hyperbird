@@ -23,9 +23,9 @@
     <q-card-section>
       <div class="flex justify-end">
         <!-- 功能性按钮们 -->
-        <q-btn class="m-2 p-3" icon="menu_book" @click="_on_online_read_clicked">在线阅读</q-btn>
+        <!-- <q-btn class="m-2 p-3" icon="menu_book" @click="_on_online_read_clicked">在线阅读</q-btn> -->
         <q-btn class="m-2 p-3" icon="menu_book" @click="_on_browser_read_clicked">浏览器阅读</q-btn>
-        <q-btn class="m-2 p-3" icon="download">下载</q-btn>
+        <!-- <q-btn class="m-2 p-3" icon="download">下载</q-btn> -->
         <q-btn class="m-2 p-3" icon="favorite">收藏</q-btn>
       </div>
     </q-card-section>
@@ -65,22 +65,9 @@
 //     "availablegroups": ""
 //   }
 // }
-interface BookInfo {
-  ID: number;
-  CreatedAt: string;
-  UpdatedAt: string;
-  DeletedAt: string;
-  bookid: string;
-  bookname: string;
-  bookimagepath: string;
-}
 
-interface BookInfoResponse {
-  book: BookInfo;
-}
-
-import {} from 'pinia';
 import { apiUrlStorage } from './../stores/api-urls';
+import { BookInfo, BookInfoResponse } from './../api-methods';
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
 
@@ -135,10 +122,10 @@ if (book_id != null) {
 
 console.log('欲访问PDF文件的URL为:', pdfFileUrl.value);
 
-function _on_online_read_clicked() {
-  alert('在线阅读功能尚未实现！');
-  console.log('在线阅读功能尚未实现！');
-}
+// function _on_online_read_clicked() {
+//   alert('在线阅读功能尚未实现！');
+//   console.log('在线阅读功能尚未实现！');
+// }
 
 function _on_browser_read_clicked() {
   console.log('浏览器阅读功能尚未实现！');

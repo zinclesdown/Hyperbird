@@ -26,6 +26,10 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/PdfViewer.vue'),
       },
       {
+        path: 'book_library/manager',
+        component: () => import('pages/BookLibraryManager.vue'),
+      },
+      {
         path: 'library_browser',
         component: () => import('pages/LibraryBrowser.vue'),
       },
