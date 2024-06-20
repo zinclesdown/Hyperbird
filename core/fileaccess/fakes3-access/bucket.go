@@ -11,8 +11,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/color"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+
+	helpers "hyperbird/core/helpers"
 )
 
 // TODO 代码中有大量的零散的数据库写入操作. 这问题很大,会导致性能严重下降甚至丢数据.
@@ -31,11 +34,12 @@ import (
 //  |- filedb.db  // 文件数据库
 
 // filedb.db的结构. 该db是对文件存储位置的缓存, 即使损坏或被删除也可以被重新构建.
-type fileDB struct {
+type fileDB struct { // 存储于filedb.db中的文件的元数据
 	gorm.Model
-	Hash     string    // 文件的Hash
-	Name     string    // 文件的名称
-	Path     string    // 文件的本地位置
+	Hash     string    // 文件的Hash，用于标识文件，使用32字符的哈希值
+	Name     string    // 文件的名称，记录文件被更名为hash前的名称
+	Path     string    // 文件的本地位置，用于提供文件服务
+	Mime     string    // 文件的MIME类型，在添加到数据库时自动填充
 	ExpireAt time.Time // 过期时间
 }
 
@@ -44,7 +48,7 @@ type FS3Bucket struct {
 	Directory  string     // 文件夹路径,文件夹包含fs3metadata.json
 	BucketName string     // 容器名称
 	HashMethod HashMethod // 计算Hash的方法 blake2b, md5, sha1, sha256, sha512
-	HashLength int        // Hash的长度 64字符
+	HashLength int        // Hash的长度 32字符的哈希值，默认建议blake2b 32
 	CreatedAt  time.Time  // 日期
 }
 
@@ -57,13 +61,13 @@ type FS3FileAccesser interface {
 
 	// TEST 创建一个新的Bucket.
 	CreateBucket(bucketName, directory string, hashMethod HashMethod, hashLength int) (*FS3Bucket, error)
-	HasBucket(directory string) bool                                 // TEST 检查指定名称的Bucket是否存在
-	LoadBucket(directory string) (*FS3Bucket, error)                 // TEST 加载指定名称的Bucket
-	RecreateDB() error                                               // 重建数据库 重建DB,不会扫描,根据文件夹中的文件重新创建数据库. 也可以拿来初始化新桶
-	RescanDB() error                                                 // 重新扫描数据库  更新DB,不会删除文件,根据文件夹中的文件更新数据库
-	SaveFileFromIO(data io.Reader, filename string) (*fileDB, error) // 从IO将数据保存，并返回一个表示该文件的FileDB实例
-	SaveFileFromPath(path string, cut bool) (*fileDB, error)         // 从指定路径将数据保存，并返回一个表示该文件的FileDB实例. cut为true时,使用move而非copy
-	DeleteFile(hash string) error                                    // 删除指定哈希值的文件
+	HasBucket(directory string) bool                                // TEST 检查指定名称的Bucket是否存在
+	LoadBucket(directory string) (*FS3Bucket, error)                // TEST 加载指定名称的Bucket
+	RecreateDB() error                                              // 重建数据库 重建DB,不会扫描,根据文件夹中的文件重新创建数据库. 也可以拿来初始化新桶
+	RescanDB() error                                                // 重新扫描数据库  更新DB,不会删除文件,根据文件夹中的文件更新数据库
+	SaveFileFromIO(data *os.File, filename string) (*fileDB, error) // 从IO将数据保存，并返回一个表示该文件的FileDB实例
+	SaveFileFromPath(path string, cut bool) (*fileDB, error)        // 从指定路径将数据保存，并返回一个表示该文件的FileDB实例. cut为true时,使用move而非copy
+	DeleteFile(hash string) error                                   // 删除指定哈希值的文件
 	// SetExpire(hash string, expireAt time.Time) error         // 设置指定哈希值的文件的过期时间
 	GetAllFileHash() (hashs []string, int64 error) // 返回所有的文件的哈希值
 	GetFileSize(hash string) (int64, error)        // 返回指定哈希值的文件的大小
@@ -90,7 +94,7 @@ type FS3FileAccesser interface {
 
 // UNTESTED!
 // 从IO将数据保存，并返回一个表示该文件的FileDB实例
-func (f *FS3Bucket) SaveFileFromIO(r io.Reader, filename string) (*fileDB, error) {
+func (f *FS3Bucket) SaveFileFromIO(r *os.File, filename string) (*fileDB, error) {
 	// 获取数据库连接
 	db, err := f.GetFileDatabase()
 	if err != nil {
@@ -116,10 +120,18 @@ func (f *FS3Bucket) SaveFileFromIO(r io.Reader, filename string) (*fileDB, error
 		return nil, err
 	}
 
+	// 计算文件MIME
+	mime, err := helpers.GetMimeFromFile(file)
+	if err != nil {
+		color.Red("计算文件MIME时发生错误: %v", err)
+	}
+
 	// 创建一个新的 fileDB 对象
 	fileDB := &fileDB{
 		Hash: hash,
 		Path: f.Directory + "/" + filename,
+		Name: filename,
+		Mime: mime,
 	}
 
 	// 将 fileDB 对象保存到数据库
@@ -151,14 +163,35 @@ func (f *FS3Bucket) OpenFile(hash string) (*os.File, error) {
 }
 
 func PrintBucketStatus(f *FS3Bucket) {
-	fmt.Println("BucketName:", f.BucketName)
-	fmt.Println("Directory:", f.Directory)
-	fmt.Println("HashMethod:", f.HashMethod)
-	fmt.Println("HashLength:", f.HashLength)
-	fmt.Println("CreatedAt:", f.CreatedAt)
+	color.Cyan("----- PrintBucketStatus: 桶的状态：-----")
+	fmt.Println("  > BucketName:", f.BucketName)
+	fmt.Println("  > Directory:", f.Directory)
+	fmt.Println("  > HashMethod:", f.HashMethod)
+	fmt.Println("  > HashLength:", f.HashLength)
+	fmt.Println("  > CreatedAt:", f.CreatedAt)
+
+	// 遍历每个桶内文件，输出filedb.db中的所有记录
+	db, err := f.GetFileDatabase()
+	if err != nil {
+		fmt.Println("连接到数据库时发生错误:", err)
+		return
+	}
+
+	var files []fileDB
+	if err := db.Find(&files).Error; err != nil {
+		fmt.Println("查询数据库时发生错误:", err)
+		return
+	}
+
+	fmt.Println("  > 文件数量:", len(files))
+	for _, file := range files {
+		fmt.Printf(" - Name:[%s]  Mime:[%s]  Hash:[%s] \n", file.Name, file.Mime, file.Hash)
+	}
+
+	color.Cyan("---------------------------------------")
 }
 
-// ServeFile 提供流式提供文件的功能，供前端的视频播放器/音频播放器/PDF查看器等使用
+// 提供流式提供文件的功能，供前端的视频播放器/音频播放器/PDF查看器等使用
 func (f *FS3Bucket) ServeFile(w http.ResponseWriter, r *http.Request, hash string) error {
 	file, err := f.OpenFile(hash)
 	if err != nil {
@@ -172,9 +205,17 @@ func (f *FS3Bucket) ServeFile(w http.ResponseWriter, r *http.Request, hash strin
 	}
 
 	// 设置必要的响应头
-	contentType := mime.TypeByExtension(filepath.Ext(info.Name()))
+	contentType, err := helpers.GetMimeFromFile(file)
+
+	if err != nil {
+		color.Red("ServeFile:获取文件MIME时发生错误: %v", err)
+	}
+
 	if contentType == "" {
-		contentType = "application/octet-stream"
+		contentType = mime.TypeByExtension(filepath.Ext(info.Name()))
+		if contentType == "" {
+			contentType = "application/octet-stream"
+		}
 	}
 	w.Header().Set("Content-Type", contentType)
 
@@ -444,6 +485,12 @@ func (f *FS3Bucket) SaveFileFromPath(path string, cut bool) (*fileDB, error) {
 		return nil, fmt.Errorf("计算文件 %q 的哈希值时发生错误: %v", path, err)
 	}
 
+	// 计算文件的MIME
+	mime, err := helpers.GetMimeFromPath(path)
+	if err != nil {
+		color.Red("计算文件MIME时发生错误: %v", err)
+	}
+
 	// 检查数据库中是否已经存在具有相同哈希值的文件
 	var file fileDB
 	if err := db.Where("hash = ?", hash).First(&file).Error; err != nil {
@@ -491,10 +538,11 @@ func (f *FS3Bucket) SaveFileFromPath(path string, cut bool) (*fileDB, error) {
 
 	// 创建新的fileDB实例
 	file = fileDB{
-		Hash:     hash,
-		Name:     filepath.Base(path),
-		Path:     destPath,
-		ExpireAt: time.Now().Add(24 * time.Hour), // 设置过期时间为24小时后
+		Hash: hash,
+		Name: filepath.Base(path),
+		Path: destPath,
+		Mime: mime,
+		// ExpireAt: time.Now().Add(24 * time.Hour), // 设置过期时间为24小时后
 	}
 
 	// 保存fileDB实例到数据库

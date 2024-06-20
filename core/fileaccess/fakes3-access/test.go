@@ -160,7 +160,7 @@ func testServeFile() {
 	}
 
 	// 检查 HTTP 响应的 Content-Type 头部
-	expectedContentType := "application/octet-stream"
+	expectedContentType := "text/plain; charset=utf-8"
 	if contentType := resp.Header.Get("Content-Type"); contentType != expectedContentType {
 		log.Fatalf("期望的 Content-Type 是 %s 但是得到的是 %s", expectedContentType, contentType)
 	}
