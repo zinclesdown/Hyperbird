@@ -178,6 +178,19 @@ func testServeFile() {
 		log.Fatalf("期望的响应正文是 \n%s\n,但是得到的是 \n%s", expectedBody, body)
 	}
 
+	// 随机选取一个文件，测试文件的本地位置
+	// 读取文件，打印哈希
+	fmt.Println("> 读取文件测试 :")
+	hashs, err := bucket.GetAllFileHash()
+	checkErr("读取文件时遇到错误:", err)
+	printArray(hashs)
+	hash = hashs[0]
+	localfilePath, err := bucket.GetFilePathReadOnly(hash) // 打印文件的本地路径
+	if err != nil {
+		log.Fatal("获取文件的本地路径时遇到错误:", err)
+	}
+	fmt.Println("测试文件的本地路径：", localfilePath)
+
 	color.Green("[文件服务测试通过！]\n")
 }
 

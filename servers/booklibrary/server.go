@@ -141,6 +141,8 @@ func AddBook(book Book) error {
 	// Bucket 		   *FS3.FS3Bucket // 书籍库的文件系统
 	// LibraryDB 	   *gorm.DB // 书籍库的数据库
 
+	// file, err := GetBookFile(book.BookId)
+
 	return nil
 }
 
@@ -155,7 +157,7 @@ func GetBookInfoById(bookid string) (Book, error) {
 }
 
 // 获取书籍文件的 *os.File
-func GetBookFile(bookid string) (*os.File, error) {
+func GetBookFileIOReader(bookid string) (*os.File, error) {
 	bucket := &FS3.FS3Bucket{}
 	bucket, err := bucket.LoadBucket(BookLibraryBucketPath)
 

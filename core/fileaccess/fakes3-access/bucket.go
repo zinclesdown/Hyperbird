@@ -82,6 +82,8 @@ type FS3FileAccesser interface {
 	ServeFile(w http.ResponseWriter, r *http.Request, hash string) error // 提供流式提供文件的功能，供前端的视频播放器/音频播放器/PDF查看器等使用
 
 	GetFileNumber() (int, error) // 获取桶内文件的数量
+
+	GetFilePathReadOnly(hash string) (string, error) // 出于某种目的，需要文件的绝对路径，则使用此方法。确保只读，不要修改文件
 }
 
 // ========================================================================
@@ -93,6 +95,25 @@ type FS3FileAccesser interface {
 //
 //
 // ========================================================================
+
+// 获取文件绝对路径。
+// 为了避免潜在问题，请务必确保只读！
+func (f *FS3Bucket) GetFilePathReadOnly(hash string) (string, error) {
+	// 连接到SQLite数据库
+	db, err := f.GetFileDatabase()
+	if err != nil {
+		color.Red("连接到SQLite数据库时发生错误: %v", err)
+		return "", err
+	}
+
+	var file fileDB
+	if err := db.Where("hash = ?", hash).First(&file).Error; err != nil {
+		color.Red("在数据库中找不到哈希为 %s 的文件: %v", hash, err)
+		return "", err
+	}
+
+	return file.Path, nil
+}
 
 // 获取桶内文件的数量
 func (f *FS3Bucket) GetFileNumber() (int, error) {
