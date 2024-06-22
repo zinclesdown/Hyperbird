@@ -25,6 +25,8 @@
         <!-- 功能性按钮们 -->
         <!-- <q-btn class="m-2 p-3" icon="menu_book" @click="_on_online_read_clicked">在线阅读</q-btn> -->
         <q-btn class="m-2 p-3" icon="menu_book" @click="_on_browser_read_clicked">浏览器阅读</q-btn>
+        <q-btn class="m-2 p-3" icon="menu_book" @click="_on_check_firstpage_clicked">[DEBUG]查看封面PDF</q-btn>
+
         <!-- <q-btn class="m-2 p-3" icon="download">下载</q-btn> -->
         <q-btn class="m-2 p-3" icon="favorite">收藏</q-btn>
       </div>
@@ -93,24 +95,39 @@ onMounted(async () => {
 // ======== PDF 浏览器相关
 // 格式化URL, 供pdf浏览器使用。使用URLSearchParams对象
 
-let pdfFileUrl = ref<string>();
-if (book_id != null) {
-  let _pdfFileURL = new URL(urlStore.bookLibraryGetServedBookfileById);
-  _pdfFileURL.searchParams.append('book_id', book_id);
-  pdfFileUrl.value = _pdfFileURL.toString();
-} else {
-  console.error('book_id is null!');
-}
-
-console.log('欲访问PDF文件的URL为:', pdfFileUrl.value);
-
 // function _on_online_read_clicked() {
 //   alert('在线阅读功能尚未实现！');
 //   console.log('在线阅读功能尚未实现！');
 // }
 
 function _on_browser_read_clicked() {
-  console.log('浏览器阅读功能尚未实现！');
+  let pdfFileUrl = ref<string>();
+  if (book_id != null) {
+    let _pdfFileURL = new URL(urlStore.bookLibraryGetServedBookfileById);
+    _pdfFileURL.searchParams.append('book_id', book_id);
+    pdfFileUrl.value = _pdfFileURL.toString();
+  } else {
+    console.error('book_id is null!');
+  }
+
+  console.log('欲访问PDF文件的URL为:', pdfFileUrl.value);
+
+  console.log('pdfFileUrl:', pdfFileUrl.value);
+  window.open(pdfFileUrl.value, '_blank');
+}
+
+function _on_check_firstpage_clicked() {
+  let pdfFileUrl = ref<string>();
+  if (book_id != null) {
+    let _pdfFileURL = new URL(urlStore.BookLibraryGetBookFirstPagePdf);
+    _pdfFileURL.searchParams.append('book_id', book_id);
+    pdfFileUrl.value = _pdfFileURL.toString();
+  } else {
+    console.error('book_id is null!');
+  }
+
+  console.log('欲访问PDF文件的URL为:', pdfFileUrl.value);
+
   console.log('pdfFileUrl:', pdfFileUrl.value);
   window.open(pdfFileUrl.value, '_blank');
 }

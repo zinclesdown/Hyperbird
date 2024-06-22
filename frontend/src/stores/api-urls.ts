@@ -36,5 +36,7 @@ export const apiUrlStorage = defineStore('apiUrls', {
     bookLibraryGetBooksShortInfo: 'http://127.0.0.1:8080/api/book_library/get_books_short_info',
     bookLibraryGetBookInfoById: 'http://127.0.0.1:8080/api/book_library/get_book_info_by_id',
     bookLibraryGetServedBookfileById: 'http://127.0.0.1:8080/api/book_library/serve_book_file_by_id',
+
+    BookLibraryGetBookFirstPagePdf: 'http://127.0.0.1:8080/api/book_library/get_book_first_page_pdf',
   }),
 });
