@@ -6,23 +6,60 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/fatih/color"
 	"github.com/pdfcpu/pdfcpu/pkg/api"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 // 将书籍PDF的封面转化为单页PDF,供前端展示
 // 有点蠢，但最简单
+// 临时目录位于 ./tmp/pdffirstpage/
+const PdfFirstPageTmpPath = "./tmp/pdffirstpage/"
 
 // 存储第一页文件的桶
 const FirstPageBucketPath = "./data/servers/booklibrary/firstpage/"
+const FirstPageDatabasePath = "./data/servers/booklibrary/firstpage.db"
 
-// 存储第一页数据的桶
-var FirstPageBucket *FS3.FS3Bucket
+var FirstPageBucket *FS3.FS3Bucket // 存储第一页数据的桶
+var FirstPageDB *gorm.DB
 
+// 书籍首页文件的信息
+type FirstPageInfo struct {
+	gorm.Model
+	BookId        string `json:"book_id" gorm:"column:book_id"`
+	FileType      string `json:"file_type" gorm:"column:file_type"`
+	FirstPageHash string `json:"first_page_hash" gorm:"column:first_page_hash"`
+}
+
+// VERY VERY HACKY
+// 真的能运行吗？
+// 有待测试
 func InitServerFirstPage() {
-	// 初始化书籍首页文件库
+	color.Green("初始化书籍首页文件库")
 	f := &FS3.FS3Bucket{}
 	if !f.HasBucket(FirstPageBucketPath) { // 如果没有书籍文件库,则创建一个
 		f.CreateBucket("bookfirstpage", FirstPageBucketPath, FS3.Blake2b, 32)
+	}
+	firstPageBucket, err := f.LoadBucket(FirstPageBucketPath) // 加载书籍库
+	if err != nil {
+		fmt.Println("初始化首页库时遇到错误:", err)
+		return
+	}
+	fmt.Println("书籍首页库初始化成功")
+	FirstPageBucket = firstPageBucket
+
+	// 初始化首页数据库, 保存到全局变量里.
+	FirstPageDB, err = gorm.Open(sqlite.Open(FirstPageDatabasePath), &gorm.Config{})
+	if err != nil {
+		fmt.Println("初始化首页数据库时遇到错误:", err)
+		return
+	}
+
+	err = FirstPageDB.AutoMigrate(&FirstPageInfo{}) // 自动创建表
+	if err != nil {
+		fmt.Println("自动迁移首页数据库时遇到错误:", err)
+		return
 	}
 }
 

@@ -46,9 +46,9 @@ type Book struct {
 	BookFileHash    string `json:"book_file_hash" gorm:"column:book_file_hash"`
 	AvailableGroups string `json:"available_groups" gorm:"column:available_groups"`
 
-	// 预览文件信息 (如果有的话), 单页PDF或者图片
-	PreviewFileType string `json:"preview_file_type" gorm:"column:preview_file_type"`
-	PreviewFileHash string `json:"preview_file_hash" gorm:"column:preview_file_hash"`
+	// // 预览文件信息 (如果有的话), 单页PDF或者图片
+	// PreviewFileType string `json:"preview_file_type" gorm:"column:preview_file_type"`
+	// PreviewFileHash string `json:"preview_file_hash" gorm:"column:preview_file_hash"`
 }
 
 // 书籍库的访问接口
@@ -129,9 +129,6 @@ func AddBook(book Book) error {
 		return err
 	}
 
-	// 打开PDF文件
-	// file, err := Bucket.OpenFile(book.BookFileHash) // *os.File
-
 	// 每当添加完书本时，向FirstPageBucket中添加书本的第一页。
 	// 使用pdfcpu库将书本的第一页提取出来，检查哈希是否在预览桶中存在，
 	// 如果不存在则添加到预览桶中，然后将预览哈希添加到书本的预览哈希字段中。
@@ -140,8 +137,65 @@ func AddBook(book Book) error {
 	// FirstPageBucket *FS3.FS3Bucket // 书籍首页文件的桶
 	// Bucket 		   *FS3.FS3Bucket // 书籍库的文件系统
 	// LibraryDB 	   *gorm.DB // 书籍库的数据库
+	// PdfFirstPageTmpPath // 临时目录位于 ./tmp/pdffirstpage/
 
-	// file, err := GetBookFile(book.BookId)
+	// 获取PDF文件的路径
+	pdfpath, err := Bucket.GetFilePathReadOnly(book.BookFileHash) // *os.File
+	color.Green("PDF文件路径:")
+	fmt.Println(pdfpath)
+	if err != nil {
+		color.Red("AddBook:获取PDF文件路径时遇到错误")
+		return err
+	}
+
+	// 打印FirstPageBucket的信息
+	color.Green("FirstPageBucket:")
+	fmt.Println(FirstPageBucket)
+
+	// 提取第一页
+	outputPos, err := ExtractFirstPageWithPdfCpuFile(pdfpath, PdfFirstPageTmpPath)
+	if err != nil {
+		color.Red("AddBook:提取第一页时遇到错误")
+		return err
+	}
+	println("第一页文件路径:", outputPos)
+
+	color.Yellow("尝试", outputPos)
+	fileinfo, err := FirstPageBucket.SaveFileFromPath(outputPos, false)
+	if err != nil {
+		color.Red("AddBook:上传第一页文件时遇到错误")
+		return err
+	}
+	fmt.Println("第一页文件上传成功:", fileinfo)
+
+	// 接下来，还需要在FirstPageDB中添加一条记录
+	// type FirstPageInfo struct {
+	// 	gorm.Model
+	// 	BookId        string `json:"book_id" gorm:"column:book_id"`
+	// 	FileType      string `json:"file_type" gorm:"column:file_type"`
+	// 	FirstPageHash string `json:"first_page_hash" gorm:"column:first_page_hash"`
+	// }
+
+	// 书籍的ID
+	bookid := book.BookId
+	// 书籍的第一页文件的哈希
+	firstpagehash := fileinfo.Hash
+
+	// 添加到FirstPageDB中
+	err = FirstPageDB.Create(&FirstPageInfo{
+		BookId:        bookid,
+		FileType:      "pdf",
+		FirstPageHash: firstpagehash,
+	}).Error
+
+	if err != nil {
+		color.Red("AddBook:添加书籍首页信息时遇到错误")
+		return err
+	}
+
+	color.Green("AddBook:书籍首页信息添加到数据库成功:")
+	fmt.Println("  书籍ID:", bookid)
+	fmt.Println("  书籍首页文件哈希:", firstpagehash)
 
 	return nil
 }
@@ -175,6 +229,37 @@ func GetBookFileIOReader(bookid string) (*os.File, error) {
 	file, err := bucket.OpenFile(book.BookFileHash)
 	if err != nil {
 		color.Red("GetBookFile:打开书籍文件时遇到错误")
+		return nil, err
+	}
+
+	return file, nil
+}
+
+// 获取书籍文件的首页pdf的 *os.File
+func GetBookFirstPageFileIOReader(bookid string) (*os.File, error) {
+
+	// FirstPageDB的信息：
+	// type FirstPageInfo struct {
+	// 	gorm.Model
+	// 	BookId        string `json:"book_id" gorm:"column:book_id"`
+	// 	FileType      string `json:"file_type" gorm:"column:file_type"`
+	// 	FirstPageHash string `json:"first_page_hash" gorm:"column:first_page_hash"`
+	// }
+
+	// 从该数据库获取对应的bookid的firstpagehash：
+	firstpagehash := ""
+	FirstPageDB.Where("book_id = ?", bookid).First(&firstpagehash)
+	// 如果不存在，则返回错误
+	if firstpagehash == "" {
+		color.Red("GetBookFirstPageFile:获取书籍首页文件时遇到错误")
+		return nil, fmt.Errorf("GetBookFirstPageFile:获取书籍首页文件时遇到错误")
+	}
+
+	// 从FirstPageBucket中获取对应的firstpagehash的文件：
+	file, err := FirstPageBucket.OpenFile(firstpagehash)
+
+	if err != nil {
+		color.Red("GetBookFirstPageFile:打开书籍文件时遇到错误")
 		return nil, err
 	}
 

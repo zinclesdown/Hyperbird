@@ -14,10 +14,15 @@ func PreTestBeforeServerStart() {
 
 	fmt.Println("  删除测试文件夹 ./data/servers/booklibrary/books")
 	os.RemoveAll("./data/servers/booklibrary/books")
+
 	fmt.Println("  删除测试文件夹 ./data/servers/booklibrary/firstpage")
 	os.RemoveAll("./data/servers/booklibrary/firstpage")
+
 	fmt.Println("  删除测试文件夹 ./data/servers/booklibrary/booklibrary.db")
 	os.RemoveAll("./data/servers/booklibrary/booklibrary.db")
+
+	fmt.Println("  删除测试文件夹 ./data/servers/booklibrary/firstpage.db")
+	os.RemoveAll("./data/servers/booklibrary/firstpage.db")
 
 }
 

@@ -40,6 +40,8 @@ const ( // 用户/游客API地址
 	API_GET_BOOKS_SHORT_INFO    string = "/api/book_library/get_books_short_info"
 	API_SERVE_BOOK_FILE_BY_HASH string = "/api/book_library/serve_book_file_by_hash"
 	API_SERVE_BOOK_FILE_BY_ID   string = "/api/book_library/serve_book_file_by_id"
+
+	API_GET_BOOK_FIRST_PAGE_PDF string = "/api/book_library/get_book_first_page_pdf"
 )
 
 // apiServeBookFile
@@ -62,6 +64,9 @@ func RegisterAPIs() {
 	//apiServeBookFile
 	ginserver.Listen(API_SERVE_BOOK_FILE_BY_HASH, apiServeBookFileByHash, "提供书籍文件的流式,接受book_file_hash作为输入")
 	ginserver.Listen(API_SERVE_BOOK_FILE_BY_ID, apiServeBookFileById, "提供书籍文件的流式,接受book_id作为输入")
+
+	// TEST!!!
+	ginserver.Listen(API_GET_BOOK_FIRST_PAGE_PDF, apiGetBookFirstPagePdf, "获取书籍的首页PDF")
 }
 
 //
@@ -189,6 +194,43 @@ func apiServeBookFileById(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		color.Yellow("apiServeBookFile::ServeFile()::服务流失传输文件遇到了错误: id=", bookID, ",错误：", err)
+		return
+	}
+}
+
+// 获取书籍的首页PDF
+func apiGetBookFirstPagePdf(c *gin.Context) {
+	// 获取书籍信息
+	bookID := c.Query("book_id")         // 获取书籍ID
+	book, err := GetBookInfoById(bookID) // Book, Error
+	fmt.Println("  读取书籍信息:", book, err)
+
+	if err != nil {
+		// 如果出错，返回错误信息
+		c.JSON(http.StatusInternalServerError, gin.H{"GetBookInfoById::error": err.Error()})
+		return
+	}
+
+	// type FirstPageInfo struct {
+	// 	gorm.Model
+	// 	BookId        string `json:"book_id" gorm:"column:book_id"`
+	// 	FileType      string `json:"file_type" gorm:"column:file_type"`
+	// 	FirstPageHash string `json:"first_page_hash" gorm:"column:first_page_hash"`
+	// }
+	// 书籍的hash和书籍首页文件的hash并不一样，可以通过数据库查询
+	// 从FirstPageDB中查询书籍首页文件的hash，通过book_id 查询 first_page_hash
+
+	// 根据book_id查询first_page_hash
+	var firstPageInfo FirstPageInfo
+	FirstPageDB.Where("book_id = ?", bookID).First(&firstPageInfo)
+	bookFirstPageHash := firstPageInfo.FirstPageHash
+
+	color.Red("apiGetBookFirstPagePdf::尝试获取首页哈希：", bookFirstPageHash)
+
+	err = FirstPageBucket.ServeFile(c.Writer, c.Request, bookFirstPageHash)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		color.Yellow("apiGetBookFirstPagePdf::ServeFile()::获取书籍首页时，传输文件遇到了错误:", err)
 		return
 	}
 }
