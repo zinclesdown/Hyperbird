@@ -80,6 +80,8 @@ type FS3FileAccesser interface {
 
 	OpenFile(hash string) (*os.File, error)                              // 返回指定哈希值的文件的数据
 	ServeFile(w http.ResponseWriter, r *http.Request, hash string) error // 提供流式提供文件的功能，供前端的视频播放器/音频播放器/PDF查看器等使用
+
+	GetFileNumber() (int, error) // 获取桶内文件的数量
 }
 
 // ========================================================================
@@ -91,6 +93,21 @@ type FS3FileAccesser interface {
 //
 //
 // ========================================================================
+
+// 获取桶内文件的数量
+func (f *FS3Bucket) GetFileNumber() (int, error) {
+	db, err := f.GetFileDatabase()
+	if err != nil {
+		return 0, err
+	}
+
+	var files []fileDB
+	if err := db.Find(&files).Error; err != nil {
+		return 0, err
+	}
+
+	return len(files), nil
+}
 
 // UNTESTED!
 // 从IO将数据保存，并返回一个表示该文件的FileDB实例
@@ -163,12 +180,21 @@ func (f *FS3Bucket) OpenFile(hash string) (*os.File, error) {
 }
 
 func PrintBucketStatus(f *FS3Bucket) {
+
+	fileNum, err := f.GetFileNumber()
+	if err != nil {
+		fmt.Println("获取文件数量时发生错误:", err)
+		return
+	}
+
 	color.Cyan("----- PrintBucketStatus: 桶的状态：-----")
 	fmt.Println("  > BucketName:", f.BucketName)
 	fmt.Println("  > Directory:", f.Directory)
 	fmt.Println("  > HashMethod:", f.HashMethod)
 	fmt.Println("  > HashLength:", f.HashLength)
 	fmt.Println("  > CreatedAt:", f.CreatedAt)
+
+	fmt.Println("  > 桶内文件数量：", fileNum)
 
 	// 遍历每个桶内文件，输出filedb.db中的所有记录
 	db, err := f.GetFileDatabase()

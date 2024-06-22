@@ -35,6 +35,8 @@ var LibraryDB *gorm.DB // 书籍库的数据库
 // 书籍文件的信息,保存在 booklibrary.db 数据库中
 type Book struct {
 	gorm.Model
+
+	// 基本信息
 	BookId          string `json:"book_id" gorm:"column:book_id"`
 	BookName        string `json:"book_name" gorm:"column:book_name"`
 	BookImagePath   string `json:"book_imagepath" gorm:"column:book_image_path"`
@@ -43,6 +45,10 @@ type Book struct {
 	BookFileType    string `json:"book_file_type" gorm:"column:book_file_type"`
 	BookFileHash    string `json:"book_file_hash" gorm:"column:book_file_hash"`
 	AvailableGroups string `json:"available_groups" gorm:"column:available_groups"`
+
+	// 预览文件信息 (如果有的话), 单页PDF或者图片
+	PreviewFileType string `json:"preview_file_type" gorm:"column:preview_file_type"`
+	PreviewFileHash string `json:"preview_file_hash" gorm:"column:preview_file_hash"`
 }
 
 // 书籍库的访问接口
@@ -95,6 +101,8 @@ func InitServer() {
 		fmt.Println("自动迁移数据库时遇到错误:", err)
 		return
 	}
+
+	InitServerFirstPage()
 }
 
 // 获取库中所有电子书籍的ID
@@ -110,9 +118,7 @@ func GetAllBookIds(page int, pageSize int) ([]string, error) {
 
 // 向书籍库中添加一本书。book结构必须完整，文件hash必须正确。
 func AddBook(book Book) error {
-
-	// 检查书籍的哈希是否在FS3文件系统中存在。使用Bucket.HasFile()检查是否存在文件
-	// 如果不存在,则返回错误
+	// 检查书籍的哈希是否在FS3文件系统中存在。使用Bucket.HasFile()检查是否存在文件。如果不存在,则返回错误
 	if !Bucket.HasFile(book.BookFileHash) {
 		fmt.Println("AddBook:书籍文件不存在")
 		return fmt.Errorf("AddBook:书籍文件不存在")
@@ -122,6 +128,18 @@ func AddBook(book Book) error {
 	if err != nil {
 		return err
 	}
+
+	// 打开PDF文件
+	// file, err := Bucket.OpenFile(book.BookFileHash) // *os.File
+
+	// 每当添加完书本时，向FirstPageBucket中添加书本的第一页。
+	// 使用pdfcpu库将书本的第一页提取出来，检查哈希是否在预览桶中存在，
+	// 如果不存在则添加到预览桶中，然后将预览哈希添加到书本的预览哈希字段中。
+	// 如果存在，则直接将预览哈希添加到书本的预览哈希字段中。
+
+	// FirstPageBucket *FS3.FS3Bucket // 书籍首页文件的桶
+	// Bucket 		   *FS3.FS3Bucket // 书籍库的文件系统
+	// LibraryDB 	   *gorm.DB // 书籍库的数据库
 
 	return nil
 }

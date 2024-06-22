@@ -29,18 +29,18 @@ const routes: RouteRecordRaw[] = [
         path: 'book_library/manager',
         component: () => import('pages/BookLibraryManager.vue'),
       },
-      {
-        path: 'library_browser',
-        component: () => import('pages/LibraryBrowser.vue'),
-      },
+      // {
+      //   path: 'library_browser',
+      //   component: () => import('pages/LibraryBrowser.vue'),
+      // },
       {
         path: 'about',
         component: () => import('pages/AboutPage.vue'),
       },
-      {
-        path: 'file_browser',
-        component: () => import('pages/FileBrowserPage.vue'),
-      },
+      // {
+      //   path: 'file_browser',
+      //   component: () => import('pages/FileBrowserPage.vue'),
+      // },
       {
         path: 'debug_page',
         component: () => import('pages/DebugPage.vue'),

@@ -67,8 +67,7 @@
 // }
 
 import { apiUrlStorage } from './../stores/api-urls';
-import { BookInfo, BookInfoResponse } from './../api-methods';
-import axios from 'axios';
+import { BookInfo, GetBookInfoById } from './../api-methods';
 import { onMounted, ref } from 'vue';
 
 var curBookId = ref<string>('1');
@@ -76,7 +75,6 @@ var curBookInfo = ref<BookInfo>();
 
 // Pinia, 读取urlStore的API地址
 const urlStore = apiUrlStorage();
-const GET_BOOK_INFO_BY_ID = urlStore.bookLibraryGetBookInfoById;
 
 // 从URL参数的book_id中读取书籍ID
 const urlParams = new URLSearchParams(window.location.search);
@@ -86,30 +84,14 @@ if (book_id) {
   console.log('找到book_id了！ :', book_id);
 }
 
-// // 通过已有的book_id, 通过axios库，查询url获取书籍信息, 返回BookInfo
-async function refreshPage(book_id: string): Promise<BookInfo> {
-  const response = await axios.get<BookInfoResponse>(GET_BOOK_INFO_BY_ID, {
-    params: {
-      book_id: book_id,
-    },
-  });
-  return response.data.book;
-}
-
 // 页面加载时，获取书籍信息
 onMounted(async () => {
-  curBookInfo.value = await refreshPage(curBookId.value);
+  curBookInfo.value = await GetBookInfoById(curBookId.value);
 });
 
 //
 // ======== PDF 浏览器相关
-//
-
-//
-console.log('PDF部分');
-
-// 格式化该URL, 供q-pdf-viewer插件使用
-// 使用URLSearchParams对象
+// 格式化URL, 供pdf浏览器使用。使用URLSearchParams对象
 
 let pdfFileUrl = ref<string>();
 if (book_id != null) {

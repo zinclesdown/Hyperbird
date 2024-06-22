@@ -1,5 +1,25 @@
 import { defineStore } from 'pinia';
 
+// 储存用例：
+// export const useCounterStore = defineStore('counter', {
+//   state: () => ({
+//     counter: 0,
+//   }),
+//   getters: {
+//     doubleCount: (state) => state.counter * 2,
+//   },
+//   actions: {
+//     increment() {
+//       this.counter++;
+//     },
+//   },
+// });
+
+// 使用用例：
+// import { apiUrlStorage } from './../stores/api-urls';
+// const urlStore = apiUrlStorage();
+// const SOME_URL = urlStore.XXXXXXX;
+
 export const apiUrlStorage = defineStore('apiUrls', {
   state: () => ({
     // // 遗产API, 从上一个工程里暴力移植过来的，没有意义，仅供参考
@@ -18,8 +38,3 @@ export const apiUrlStorage = defineStore('apiUrls', {
     bookLibraryGetServedBookfileById: 'http://127.0.0.1:8080/api/book_library/serve_book_file_by_id',
   }),
 });
-
-// 使用用例：
-// import { apiUrlStorage } from './../stores/api-urls';
-// const urlStore = apiUrlStorage();
-// const SOME_URL = urlStore.XXXXXXX;

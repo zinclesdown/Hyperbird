@@ -77,3 +77,13 @@ export async function GetBooksShortInfo(page: number = 0, page_size: number = 10
     return { books: [] };
   }
 }
+
+// // 通过已有的book_id, 通过axios库，查询url获取书籍信息, 返回BookInfo
+export async function GetBookInfoById(book_id: string): Promise<BookInfo> {
+  const response = await axios.get<BookInfoResponse>(urlStore.bookLibraryGetBookInfoById, {
+    params: {
+      book_id: book_id,
+    },
+  });
+  return response.data.book;
+}

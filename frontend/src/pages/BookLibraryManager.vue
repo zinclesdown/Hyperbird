@@ -2,7 +2,6 @@
   <q-page class="m-4 p-4">
     <h1>Book Library Manage</h1>
     <p>TODO: Book Library Manage</p>
-    API路径: {{ GET_BOOKS_SHORT_INFO }}
   </q-page>
 </template>
 
@@ -12,9 +11,9 @@ import { ref } from 'vue';
 console.log('Hello from BookLibraryManage.vue!');
 
 // 遍历库里的所有书籍
-import { apiUrlStorage } from './../stores/api-urls';
-const urlStore = apiUrlStorage();
-const GET_BOOKS_SHORT_INFO = urlStore.bookLibraryGetBooksShortInfo;
+// import { apiUrlStorage } from './../stores/api-urls';
+
+import {} from './../api-methods';
 
 const bookNum = ref<number>(0);
 
