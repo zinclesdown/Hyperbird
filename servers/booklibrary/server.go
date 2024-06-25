@@ -37,18 +37,18 @@ type Book struct {
 	gorm.Model
 
 	// 基本信息
-	BookId          string `json:"book_id" gorm:"column:book_id"`
-	BookName        string `json:"book_name" gorm:"column:book_name"`
-	BookImagePath   string `json:"book_imagepath" gorm:"column:book_image_path"`
-	Author          string `json:"author" gorm:"column:author"`
-	Description     string `json:"description" gorm:"column:description"`
-	BookFileType    string `json:"book_file_type" gorm:"column:book_file_type"`
-	BookFileHash    string `json:"book_file_hash" gorm:"column:book_file_hash"`
-	AvailableGroups string `json:"available_groups" gorm:"column:available_groups"`
+	BookId          string `json:"book_id" mapstructure:"book_id" gorm:"column:book_id"`
+	BookName        string `json:"book_name" mapstructure:"book_name" gorm:"column:book_name"`
+	BookImagePath   string `json:"book_image_path" mapstructure:"book_imagepath" gorm:"column:book_image_path"`
+	Author          string `json:"author" mapstructure:"author" gorm:"column:author"`
+	Description     string `json:"description" mapstructure:"description" gorm:"column:description"`
+	BookFileType    string `json:"book_file_type" mapstructure:"book_file_type" gorm:"column:book_file_type"`
+	BookFileHash    string `json:"book_file_hash" mapstructure:"book_file_hash" gorm:"column:book_file_hash"`
+	AvailableGroups string `json:"available_groups" mapstructure:"available_groups" gorm:"column:available_groups"`
 
-	// // 预览文件信息 (如果有的话), 单页PDF或者图片
-	// PreviewFileType string `json:"preview_file_type" gorm:"column:preview_file_type"`
-	// PreviewFileHash string `json:"preview_file_hash" gorm:"column:preview_file_hash"`
+	// 预览文件信息 (如果有的话), 单页PDF或者图片
+	// PreviewFileType string `json:"preview_file_type" mapstructure:"preview_file_type" gorm:"column:preview_file_type"`
+	// PreviewFileHash string `json:"preview_file_hash" mapstructure:"preview_file_hash" gorm:"column:preview_file_hash"`
 }
 
 // 书籍库的访问接口

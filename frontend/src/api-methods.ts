@@ -37,16 +37,36 @@ import { apiUrlStorage } from './stores/api-urls';
 import axios from 'axios';
 const urlStore = apiUrlStorage(); // Pinia, 读取urlStore的API地址
 
-export interface BookInfo {
-  ID: number;
-  CreatedAt: string;
-  UpdatedAt: string;
-  DeletedAt: string;
-  bookid: string;
-  bookname: string;
-  bookimagepath: string;
-}
+// export interface BookInfo {
+//   ID: number;
+//   CreatedAt: string;
+//   UpdatedAt: string;
+//   DeletedAt: string;
+//   bookid: string;
+//   bookname: string;
+//   bookimagepath: string;
+// }
 
+export interface BookInfo {
+  id: number;
+  created_at: Date;
+  updated_at: Date;
+  deleted_at?: Date;
+
+  // 基本信息
+  book_id: string;
+  book_name: string;
+  book_image_path: string;
+  author: string;
+  description: string;
+  book_file_type: string;
+  book_file_hash: string;
+  available_groups: string;
+
+  // 预览文件信息 (如果有的话), 单页PDF或者图片
+  // preview_file_type?: string;
+  // preview_file_hash?: string;
+}
 export interface BookInfoResponse {
   book: BookInfo;
 }

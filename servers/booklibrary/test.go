@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/spf13/viper"
 )
 
 // 运行测试前需执行的东西。例如清理测试文件夹
@@ -65,21 +66,6 @@ func Test() {
 		BookName:     "第三本克隆测试书籍",
 		BookFileHash: file2.Hash})
 
-	AddBook(Book{BookId: "TestBooksID4withfile2",
-		BookName:     "第四本克隆测试书籍",
-		BookFileHash: file2.Hash})
-	AddBook(Book{BookId: "TestBooksID5withfile2",
-		BookName:     "第五本克隆测试书籍",
-		BookFileHash: file2.Hash})
-
-	AddBook(Book{BookId: "TestBooksID6withfile2",
-		BookName:     "第六本克隆测试书籍",
-		BookFileHash: file2.Hash})
-
-	AddBook(Book{BookId: "TestBooksID7withfile2",
-		BookName:     "第七本克隆测试书籍",
-		BookFileHash: file2.Hash})
-
 	// 读取书籍列表
 	bookids, err = GetAllBookIds(0, 10)
 	fmt.Println("  读取书籍ID:", bookids, err)
@@ -93,4 +79,64 @@ func Test() {
 
 	color.Green("[图书管理系统测试完毕]")
 
+	AddCustomTestBooks()
+}
+
+// 添加自定义的测试用例图书。由于DMCA，这里不提供测试用例文件。你可以在测试用例文件夹内自行定义。
+func AddCustomTestBooks() {
+	color.Blue("  添加自定义的测试用例图书...")
+	// 读取YAML(如果有)
+
+	// 检查是否有yaml。没有则返回
+	if _, err := os.Stat("./tests/booklibrary/custom/custom_testcases.yaml"); os.IsNotExist(err) {
+		color.Yellow("  未找到自定义测试用例文件。")
+		return
+	}
+
+	type customBookImportConfig struct {
+		BookId       string `mapstructure:"book_id"`
+		BookName     string `mapstructure:"book_name"`
+		Author       string `mapstructure:"author"`
+		Description  string `mapstructure:"description"`
+		BookFilePath string `mapstructure:"book_file_path"`
+	}
+
+	type customImportConfig struct {
+		Books []customBookImportConfig `mapstructure:"books"`
+	}
+
+	// 读取YAML
+	// viper.SetConfigName("custom_testcases") // 配置文件名称（无扩展名）
+	viper.SetConfigType("yaml")
+	viper.SetConfigFile("./tests/booklibrary/custom/custom_testcases.yaml")
+
+	if err := viper.ReadInConfig(); err != nil {
+		color.Red("Error reading config file, %s", err)
+		return
+
+	}
+
+	var config customImportConfig
+	err := viper.Unmarshal(&config)
+	if err != nil {
+		color.Red("Unable to decode into struct, %s", err)
+		return
+	}
+
+	// 输出读取的配置信息
+	for _, book := range config.Books {
+		color.Green("Book Name: %s, Book ID: %s, FileHash: %s\n", book.BookName, book.BookId, book.BookFilePath)
+
+		// 添加书籍到桶里
+		file, err := Bucket.SaveFileFromPath(book.BookFilePath, false)
+		warn("添加书籍到桶里遇到了错误：", err)
+		fmt.Println("向桶里添加了文件：", file.Hash)
+
+		AddBook(Book{BookId: book.BookId,
+			BookName:     book.BookName,
+			Description:  book.Description,
+			Author:       book.Author,
+			BookFileHash: file.Hash})
+
+	}
 }

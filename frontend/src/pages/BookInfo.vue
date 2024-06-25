@@ -6,40 +6,45 @@
         <!-- <div class="book-image m-2 rounded-2xl">
           <q-img src="https://cdn.quasar.dev/img/parallax2.jpg" alt="book image" class="w-full h-full object-fill" />
         </div> -->
-        <div class="book-image m-2 rounded-2xl">
+        <div class="book-image m-2 rounded-2xl shadow-lg">
           <!-- <canvas id="pdf-canvas" class="w-full h-full"></canvas> -->
           <PdfPreview :bookId="curBookId" class="w-full h-full" />
         </div>
       </q-card-section>
 
-      <q-card-section class="m-8 p-4 flex-auto">
+      <q-card-section class="m-8 p-4 flex-auto bg-gray-50 rounded-3xl shadow-lg">
         <!-- 重要信息的描述内容，位于图片的右侧 -->
         <div class="text-sm text-center m-1">你正在阅读：</div>
-        <div class="text-h3 text-center m-4 mb-16">书籍名称:{{ curBookInfo?.bookname }}</div>
-        <div class="m-2 text-h6">书籍ID:{{ curBookInfo?.bookid }}</div>
-        <div class="m-2 text-h6">作者信息:xxx</div>
-        <div class="m-2 text-h6">文件信息:xxx</div>
-        <div class="m-2 text-h6">上架时间:{{ curBookInfo?.CreatedAt }}</div>
+        <div class="text-h3 text-center m-4 mb-16">{{ curBookInfo?.book_name }}</div>
+        <div class="m-2 text-h6">ID:{{ curBookInfo?.book_id }}</div>
+        <div class="m-2 text-h6">作者信息:{{ curBookInfo?.author }}</div>
+        <div class="m-2 text-h6">文件信息:{{ curBookInfo?.book_file_hash }}</div>
+        <!-- <div class="m-2 text-h6">上架时间:{{ curBookInfo?.CreatedAt }}</div>
         <div class="m-2 text-h6">加入时间:{{ curBookInfo?.CreatedAt }}</div>
-        <div class="m-2 text-h6">图像链接:{{ curBookInfo?.bookimagepath }}</div>
+        <div class="m-2 text-h6">图像链接:{{ curBookInfo?.bookimagepath }}</div> -->
       </q-card-section>
     </div>
     <q-card-section>
-      <div class="flex justify-end">
-        <!-- 功能性按钮们 -->
-        <!-- <q-btn class="m-2 p-3" icon="menu_book" @click="_on_online_read_clicked">在线阅读</q-btn> -->
-        <q-btn class="m-2 p-3" icon="menu_book" @click="_on_browser_read_clicked">浏览器阅读</q-btn>
-        <q-btn class="m-2 p-3" icon="menu_book" @click="_on_check_firstpage_clicked">[DEBUG]查看封面PDF</q-btn>
+      <!-- <div class="q-pa-md q-gutter-sm">
+        <q-btn color="primary" icon="mail" label="左侧" />
+        <q-btn color="secondary" icon-right="mail" label="On Right" />
+        <q-btn color="red" icon="mail" icon-right="send" label="On Left and Right" />
+        <br />
+        <q-btn icon="phone" label="Stacked" stack glossy color="purple" />
+      </div> -->
 
-        <!-- <q-btn class="m-2 p-3" icon="download">下载</q-btn> -->
-        <q-btn class="m-2 p-3" icon="favorite">收藏</q-btn>
+      <div class="flex justify-end q-pa-md q-gutter-sm">
+        <!-- 功能性按钮们 -->
+        <q-btn class="m-2 p-3" push color="primary" icon="menu_book" @click="_on_browser_read_clicked" label="浏览器阅读" />
+        <q-btn class="m-2 p-3" push color="secondary" icon="menu_book" @click="_on_check_firstpage_clicked" label="查看封面" />
+        <q-btn class="m-2 p-3" push color="red" icon="favorite">收藏</q-btn>
       </div>
     </q-card-section>
 
     <q-card-section>
       <!-- 详细介绍内容 -->
-      <div class="m-4 p-4">书籍的详细介绍</div>
-      <div>{{ curBookInfo }}</div>
+      <div class="m-4 p-4 text-sm">书籍的详细介绍: {{ curBookInfo?.description }}</div>
+      <div class="text-gray-500 m-4 p-8 bg-gray-50 rounded-3xl">{{ curBookInfo }}</div>
     </q-card-section>
   </q-card>
 </template>
@@ -47,8 +52,8 @@
 <!-- 调整图片文件的尺寸。quasar和tailwind都没有现成的方法可用，只能写css了。 -->
 <style scoped>
 .book-image {
-  width: 256px; /* 25% of the viewport width */
-  height: 361px; /* 141% of the width, which is the aspect ratio of A4 paper */
+  width: 320px; /* 25% of the viewport width */
+  height: 450px; /* 141% of the width, which is the aspect ratio of A4 paper */
   overflow: hidden;
 }
 </style>

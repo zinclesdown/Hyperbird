@@ -12,7 +12,7 @@ import { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api';
 // 使用Vite的import.meta.url来正确设置workerSrc的路径
 // 假设你已经将pdf.worker.js复制到了public目录
 // const workerSrc = new URL('public/pdf.worker.mjs', import.meta.url).href;
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'public/pdf.worker.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.mjs';
 
 async function renderPDFPage(pdfFile: string) {
   // 在canvas id="pdf-canvas"的元素上渲染PDF页面

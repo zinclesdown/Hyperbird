@@ -17,7 +17,7 @@ const props = defineProps({
 
 const pdfCanvas = ref<HTMLCanvasElement | null>(null);
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/public/pdf.worker.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';
 
 async function renderPDFPage(pdfFile: string) {
   if (!pdfCanvas.value) {

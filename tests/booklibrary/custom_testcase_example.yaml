@@ -1,0 +1,20 @@
+books:
+  # 若需添加自定义测试用例，可以参考下列格式：
+  # 例子：添加自定义测试用例
+  - book_name: "The Great Gatsby"
+    book_id: "TestBook1"
+    author: "F. Scott Fitzgerald"
+    description: "The Great Gatsby is a novel written by American author F. Scott Fitzgerald that follows a cast of characters living in the fictional towns of West Egg and East Egg on prosperous Long Island in the summer of 1922."
+    book_file_path: "./tests/booklibrary/custom/TestBook1.pdf"
+
+  - book_name: "The Catcher in the Rye"
+    book_id: "TestBook2"
+    author: "J.D. Salinger"
+    description: "The Catcher in the Rye is a novel by J. D. Salinger, partially published in serial form in 1945–1946 and as a novel in 1951."
+    book_file_path: "./tests/booklibrary/custom/TestBook2.pdf"
+
+  - book_name: "To Kill a Mockingbird"
+    book_id: "TestBook3"
+    author: "Harper Lee"
+    description: "To Kill a Mockingbird is a novel by Harper Lee published in 1960. It was immediately successful, winning the Pulitzer Prize, and has become a classic of modern American literature."
+    book_file_path: "./tests/booklibrary/custom/TestBook3.pdf"

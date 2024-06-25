@@ -16,5 +16,9 @@
       <div>Vue-Router</div>
       <a href="https://github.com/zinclesdown/hyperbird" target="_blank">GitHub</a>
     </div>
+
+    <div>
+      <a href="http://127.0.0.1:8080" target="_blank"> 后端API </a>
+    </div>
   </div>
 </template>

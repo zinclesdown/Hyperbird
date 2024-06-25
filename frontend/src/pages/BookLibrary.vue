@@ -1,22 +1,8 @@
 <template>
   <q-page class="m-4 p-4">
     <h3>Book Library</h3>
-    <p>图书馆系统</p>
-
-    <!-- 显示图书的组件。调用 get_books_shortinfo(page:int, page_size:int)来获取书籍ID信息 -->
-    <!-- 该方法返回 数组[BookShortInfo{book_id:string, book_name:string}] -->
-    <div id="books_displayer">
-      {{ curpageBooksInfo }}
-
-      <div v-for="bookInfo in curpageBooksInfo" :key="bookInfo.book_id">
-        <div>书籍信息</div>
-        <div>{{ bookInfo.book_id }}</div>
-        <div>{{ bookInfo.book_name }}</div>
-      </div>
-    </div>
 
     <!-- 以卡片格式显示书籍 -->
-    <h4>已有书籍</h4>
     <div class="q-pa-md">
       <!-- <div class="q-gutter-md row items-start"> -->
       <div class="q-pa-md row q-col-gutter-md">
@@ -29,14 +15,17 @@
           }"
         >
           <!-- 自定义的卡片样式 -->
-          <q-card flat bordered class="my-card">
+          <q-card flat bordered class="my-card rounded-2xl">
             <q-card-section>
-              <div class="rounded-2xl">
+              <div>
                 <!-- <q-img src="https://cdn.quasar.dev/img/parallax2.jpg" alt="book image" class="absolute-full z-10"> -->
                 <!-- <div class="absolute-bottom text-subtitle2 text-center"> -->
-                <PdfPreview :bookId="book.book_id" class="w-full h-full" />
-                <div class="text-on-image">ID:{{ book.book_id }}</div>
-                <div class="text-on-image">NAME:{{ book.book_name }}</div>
+                <PdfPreview :bookId="book.book_id" class="w-full h-full absolute-full z-10 rounded-2xl">
+                  <div class="absolute-bottom text-subtitle2 text-center">
+                    <div class="text-on-image z-0">ID:{{ book.book_id }}</div>
+                    <div class="text-on-image">NAME:{{ book.book_name }}</div>
+                  </div>
+                </PdfPreview>
                 <!-- </div> -->
                 <!-- </q-img> -->
               </div>
@@ -46,6 +35,12 @@
           <!--  -->
         </router-link>
       </div>
+    </div>
+
+    <!-- 显示图书的组件。调用 get_books_shortinfo(page:int, page_size:int)来获取书籍ID信息 -->
+    <!-- 该方法返回 数组[BookShortInfo{book_id:string, book_name:string}] -->
+    <div id="books_displayer" class="bg-gray-200 m-4 p-16 rounded-3xl">
+      {{ curpageBooksInfo }}
     </div>
 
     <!-- 按钮，手动触发刷新 -->
