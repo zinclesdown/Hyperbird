@@ -3,8 +3,12 @@
     <div class="row">
       <q-card-section class="flex items-center m-4">
         <!-- 图像的显示区域，位于左上侧。 -->
-        <div class="book-image m-2 rounded-2xl">
+        <!-- <div class="book-image m-2 rounded-2xl">
           <q-img src="https://cdn.quasar.dev/img/parallax2.jpg" alt="book image" class="w-full h-full object-fill" />
+        </div> -->
+        <div class="book-image m-2 rounded-2xl">
+          <!-- <canvas id="pdf-canvas" class="w-full h-full"></canvas> -->
+          <PdfPreview :bookId="curBookId" class="w-full h-full" />
         </div>
       </q-card-section>
 
@@ -67,16 +71,15 @@
 //     "availablegroups": ""
 //   }
 // }
-
-import { apiUrlStorage } from './../stores/api-urls';
 import { BookInfo, GetBookInfoById } from './../api-methods';
 import { onMounted, ref } from 'vue';
 
+// import * as pdfjsLib from 'pdfjs-dist';
+// import { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api';
+import * as APIMethods from '../api-methods';
+
 var curBookId = ref<string>('1');
 var curBookInfo = ref<BookInfo>();
-
-// Pinia, 读取urlStore的API地址
-const urlStore = apiUrlStorage();
 
 // 从URL参数的book_id中读取书籍ID
 const urlParams = new URLSearchParams(window.location.search);
@@ -100,35 +103,55 @@ onMounted(async () => {
 //   console.log('在线阅读功能尚未实现！');
 // }
 
-function _on_browser_read_clicked() {
-  let pdfFileUrl = ref<string>();
-  if (book_id != null) {
-    let _pdfFileURL = new URL(urlStore.bookLibraryGetServedBookfileById);
-    _pdfFileURL.searchParams.append('book_id', book_id);
-    pdfFileUrl.value = _pdfFileURL.toString();
-  } else {
-    console.error('book_id is null!');
-  }
-
-  console.log('欲访问PDF文件的URL为:', pdfFileUrl.value);
-
-  console.log('pdfFileUrl:', pdfFileUrl.value);
-  window.open(pdfFileUrl.value, '_blank');
+async function _on_browser_read_clicked() {
+  let url = await APIMethods.GetBookPDFUrl(curBookId.value);
+  window.open(url, '_blank');
 }
 
-function _on_check_firstpage_clicked() {
-  let pdfFileUrl = ref<string>();
-  if (book_id != null) {
-    let _pdfFileURL = new URL(urlStore.BookLibraryGetBookFirstPagePdf);
-    _pdfFileURL.searchParams.append('book_id', book_id);
-    pdfFileUrl.value = _pdfFileURL.toString();
-  } else {
-    console.error('book_id is null!');
-  }
-
-  console.log('欲访问PDF文件的URL为:', pdfFileUrl.value);
-
-  console.log('pdfFileUrl:', pdfFileUrl.value);
-  window.open(pdfFileUrl.value, '_blank');
+async function _on_check_firstpage_clicked() {
+  let url = await APIMethods.GetFirstPagePDFUrl(curBookId.value);
+  window.open(url, '_blank');
 }
+
+// // 预览首页PDF
+// pdfjsLib.GlobalWorkerOptions.workerSrc = '/public/pdf.worker.mjs';
+// async function renderPDFPage(pdfFile: string) {
+//   // 在canvas id="pdf-canvas"的元素上渲染PDF页面
+//   try {
+//     const pdf: PDFDocumentProxy = await pdfjsLib.getDocument(pdfFile).promise;
+//     const page = await pdf.getPage(1);
+//     const canvasElement = document.getElementById('pdf-canvas') as HTMLCanvasElement;
+//     if (!canvasElement) {
+//       console.error('Canvas element not found');
+//       return;
+//     }
+//     const context = canvasElement.getContext('2d');
+//     if (!context) {
+//       console.error('Unable to get canvas context');
+//       return;
+//     }
+//     const viewport = page.getViewport({ scale: 1.5 });
+//     canvasElement.height = viewport.height;
+//     canvasElement.width = viewport.width;
+
+//     const renderContext = {
+//       canvasContext: context,
+//       viewport: viewport,
+//     };
+//     page.render(renderContext);
+//   } catch (error) {
+//     console.error('Error rendering PDF page:', error);
+//   }
+// }
+
+// // 渲染首页PDF
+// APIMethods.GetFirstPagePDFUrl(curBookId.value).then((url) => {
+//   if (url == null) {
+//     console.error('获取首页PDF的URL失败！');
+//     return;
+//   } else {
+//     renderPDFPage(url);
+//   }
+// });
+import PdfPreview from 'src/components/PdfPreview.vue';
 </script>

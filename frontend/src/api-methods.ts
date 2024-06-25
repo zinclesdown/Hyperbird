@@ -32,6 +32,7 @@
 
 // 定义接口
 
+import { ref } from 'vue';
 import { apiUrlStorage } from './stores/api-urls';
 import axios from 'axios';
 const urlStore = apiUrlStorage(); // Pinia, 读取urlStore的API地址
@@ -86,4 +87,33 @@ export async function GetBookInfoById(book_id: string): Promise<BookInfo> {
     },
   });
   return response.data.book;
+}
+
+export async function GetBookPDFUrl(book_id: string) {
+  const pdfFileUrl = ref<string>();
+  if (book_id != null) {
+    const _pdfFileURL = new URL(urlStore.bookLibraryGetServedBookfileById);
+    _pdfFileURL.searchParams.append('book_id', book_id);
+    pdfFileUrl.value = _pdfFileURL.toString();
+  } else {
+    console.error('book_id is null!');
+  }
+
+  console.log('欲访问PDF文件的URL为:', pdfFileUrl.value);
+  return pdfFileUrl.value;
+}
+
+// 获取书籍的第一页PDF文件的URL
+export async function GetFirstPagePDFUrl(book_id: string) {
+  const pdfFileUrl = ref<string>();
+  if (book_id != null) {
+    const _pdfFileURL = new URL(urlStore.BookLibraryGetBookFirstPagePdf);
+    _pdfFileURL.searchParams.append('book_id', book_id);
+    pdfFileUrl.value = _pdfFileURL.toString();
+  } else {
+    console.error('book_id is null!');
+  }
+
+  console.log('欲访问PDF文件的URL为:', pdfFileUrl.value);
+  return pdfFileUrl.value;
 }

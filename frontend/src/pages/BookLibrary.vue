@@ -32,12 +32,13 @@
           <q-card flat bordered class="my-card">
             <q-card-section>
               <div class="rounded-2xl">
-                <q-img src="https://cdn.quasar.dev/img/parallax2.jpg" alt="book image" class="absolute-full z-10">
-                  <div class="absolute-bottom text-subtitle2 text-center">
-                    <div class="text-on-image">ID:{{ book.book_id }}</div>
-                    <div class="text-on-image">NAME:{{ book.book_name }}</div>
-                  </div>
-                </q-img>
+                <!-- <q-img src="https://cdn.quasar.dev/img/parallax2.jpg" alt="book image" class="absolute-full z-10"> -->
+                <!-- <div class="absolute-bottom text-subtitle2 text-center"> -->
+                <PdfPreview :bookId="book.book_id" class="w-full h-full" />
+                <div class="text-on-image">ID:{{ book.book_id }}</div>
+                <div class="text-on-image">NAME:{{ book.book_name }}</div>
+                <!-- </div> -->
+                <!-- </q-img> -->
               </div>
             </q-card-section>
           </q-card>
@@ -99,4 +100,6 @@ onMounted(() => {
   refreshPage(0, 10);
   console.log('mounted');
 });
+
+import PdfPreview from 'src/components/PdfPreview.vue';
 </script>
