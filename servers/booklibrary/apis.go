@@ -37,7 +37,9 @@ const ( // 用户/游客API地址
 	API_USE_GET_ALL_BOOK_IDS     string = "/api/book_library/get_all_bookids"
 	API_ALIVE                    string = "/api/book_library/"
 
-	API_GET_BOOKS_SHORT_INFO    string = "/api/book_library/get_books_short_info"
+	API_GET_BOOKS_SHORT_INFO string = "/api/book_library/get_books_short_info" // 获取供列表界面预览的短信息
+	API_GET_BOOKS_INFO       string = "/api/book_library/get_books_info"       // 获取完整的书籍信息
+
 	API_SERVE_BOOK_FILE_BY_HASH string = "/api/book_library/serve_book_file_by_hash"
 	API_SERVE_BOOK_FILE_BY_ID   string = "/api/book_library/serve_book_file_by_id"
 
@@ -59,7 +61,8 @@ func RegisterAPIs() {
 	ginserver.Listen(API_USER_GET_BOOK_INFO_BY_ID, apiGetBookInfoById, "根据ID信息，精准获取书籍信息. 接受参数：book_id")
 
 	//apiGetBooksShortInfo
-	ginserver.Listen(API_GET_BOOKS_SHORT_INFO, apiGetBooksShortInfo, "返回某一页的书籍ID与书籍的名称、图像。接受参数：page:int, page_size:int.")
+	ginserver.Listen(API_GET_BOOKS_INFO, apiGetBooksInfo, "返回某一页的书籍ID与书籍的名称、图像等属性。接受参数：page:int, page_size:int.")
+	ginserver.Listen(API_GET_BOOKS_SHORT_INFO, apiGetBooksShortInfo, "返回某一页的书籍ID与书籍的名称、图像等属性。接受参数：page:int, page_size:int.")
 
 	//apiServeBookFile
 	ginserver.Listen(API_SERVE_BOOK_FILE_BY_HASH, apiServeBookFileByHash, "提供书籍文件的流式,接受book_file_hash作为输入")
@@ -121,9 +124,14 @@ func apiGetBooksShortInfo(c *gin.Context) {
 	// 根据已有ID数组，获取书籍信息。
 	// 定义结构：
 	type bookShortInfo struct {
-		BookId        string `json:"book_id"`
-		BookName      string `json:"book_name"`
-		BookImagePath string `json:"book_image_path"`
+		BookId        string `json:"book_id" mapstructure:"book_id" gorm:"column:book_id"`
+		BookName      string `json:"book_name" mapstructure:"book_name" gorm:"column:book_name"`
+		BookImagePath string `json:"book_image_path" mapstructure:"book_imagepath" gorm:"column:book_image_path"`
+
+		Author       string `json:"author" mapstructure:"author" gorm:"column:author"`
+		Description  string `json:"description" mapstructure:"description" gorm:"column:description"`
+		BookFileType string `json:"book_file_type" mapstructure:"book_file_type" gorm:"column:book_file_type"`
+		BookFileHash string `json:"book_file_hash" mapstructure:"book_file_hash" gorm:"column:book_file_hash"`
 	}
 
 	// 定义数组(切片)：
@@ -142,10 +150,58 @@ func apiGetBooksShortInfo(c *gin.Context) {
 		bookShortInfos[i].BookId = book_id
 		bookShortInfos[i].BookName = book.BookName
 		bookShortInfos[i].BookImagePath = book.BookImagePath
+		bookShortInfos[i].Author = book.Author
+		bookShortInfos[i].Description = book.Description
+		bookShortInfos[i].BookFileType = book.BookFileType
+		bookShortInfos[i].BookFileHash = book.BookFileHash
 	}
 
 	// 返回这个数组
 	c.JSON(http.StatusOK, gin.H{"books": bookShortInfos})
+}
+
+// 获取代表完整的书籍信息的数组
+func apiGetBooksInfo(c *gin.Context) {
+	// 从url参数读取page:int page_size:int
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "参数page错误"})
+		return
+	}
+	page_size, err := strconv.Atoi(c.Query("page_size"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "参数page_size错误"})
+		return
+	}
+
+	// 调用GetAllBookIds, 获取所有ID, 然后根据ID进一步索引得到书籍信息
+	// 获取所有书籍 ID
+	idArr, err := GetAllBookIds(page, page_size) // String[], Error
+	fmt.Println("  读取书籍ID:", idArr, err)
+	if err != nil {
+		// 如果出错，返回错误信息
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 根据已有ID数组，获取书籍信息。
+
+	// 定义数组(切片)：
+	bookInfos := make([]Book, len(idArr))
+
+	// 遍历ID数组，获取书籍信息
+	for i, book_id := range idArr {
+		book, err := GetBookInfoById(book_id) // Book, Error
+		if err != nil {
+			// 如果出错，返回错误信息
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		bookInfos[i] = book
+	}
+
+	// 返回这个数组
+	c.JSON(http.StatusOK, gin.H{"books": bookInfos})
 }
 
 // 接受包内书籍ID参数，返回书籍信息 或者 错误信息

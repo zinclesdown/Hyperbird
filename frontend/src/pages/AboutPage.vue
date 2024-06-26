@@ -6,7 +6,7 @@
     <p>工程使用到了许多第三方库，其中比较重要的包括但不限于：</p>
     <!-- quasar、tailwindcss 、 vue-->
     <div>
-      <div>Quasar Framework</div>
+      <a href="https://quasar.dev/docs" target="_blank">Quasar Framework</a>
       <div>Tailwind CSS</div>
       <div>Vue 3</div>
       <div>Pinia</div>

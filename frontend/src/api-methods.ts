@@ -35,46 +35,42 @@
 import { ref } from 'vue';
 import { apiUrlStorage } from './stores/api-urls';
 import axios from 'axios';
+import BookInfo from './pages/BookInfo.vue';
 const urlStore = apiUrlStorage(); // Pinia, 读取urlStore的API地址
 
-// export interface BookInfo {
-//   ID: number;
-//   CreatedAt: string;
-//   UpdatedAt: string;
-//   DeletedAt: string;
-//   bookid: string;
-//   bookname: string;
-//   bookimagepath: string;
-// }
-
 export interface BookInfo {
-  id: number;
-  created_at: Date;
-  updated_at: Date;
+  id?: number;
+  created_at?: Date;
+  updated_at?: Date;
   deleted_at?: Date;
 
   // 基本信息
   book_id: string;
-  book_name: string;
-  book_image_path: string;
-  author: string;
-  description: string;
-  book_file_type: string;
-  book_file_hash: string;
-  available_groups: string;
-
-  // 预览文件信息 (如果有的话), 单页PDF或者图片
-  // preview_file_type?: string;
-  // preview_file_hash?: string;
+  book_name?: string;
+  book_image_path?: string;
+  author?: string;
+  description?: string;
+  book_file_type?: string;
+  book_file_hash?: string;
+  available_groups?: string;
 }
 export interface BookInfoResponse {
   book: BookInfo;
+}
+
+export interface BookInfosResponse {
+  books: BookInfo[];
 }
 
 export interface BookShortInfo {
   book_id: string;
   book_name: string;
   book_image_path: string;
+
+  author: string;
+  description: string;
+  book_file_type: string;
+  book_file_hash: string;
 }
 
 export interface BookShortInfoResponse {
@@ -86,6 +82,22 @@ export interface BookShortInfoResponse {
 export async function GetBooksShortInfo(page: number = 0, page_size: number = 10): Promise<BookShortInfoResponse> {
   try {
     const response = await axios.get<BookShortInfoResponse>(urlStore.bookLibraryGetBooksShortInfo, {
+      params: {
+        page: page,
+        page_size: page_size,
+      },
+    });
+    console.log('获取书籍信息：', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('在向服务器请求书籍信息时发生错误：', error);
+    return { books: [] };
+  }
+}
+
+export async function GetBookInfos(page: number = 0, page_size: number = 10): Promise<BookInfosResponse> {
+  try {
+    const response = await axios.get<BookInfosResponse>(urlStore.bookLibraryGetBooksInfo, {
       params: {
         page: page,
         page_size: page_size,
