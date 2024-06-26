@@ -5,7 +5,8 @@ package booklibrary
 import (
 	"fmt"
 	FS3 "hyperbird/core/fileaccess/fakes3-access"
-	"io"
+
+	// "io"
 	"os"
 
 	"github.com/fatih/color"
@@ -51,27 +52,27 @@ type Book struct {
 	// PreviewFileHash string `json:"preview_file_hash" mapstructure:"preview_file_hash" gorm:"column:preview_file_hash"`
 }
 
-// 书籍库的访问接口
-type BookLibraryServerAccessor interface {
-	GetAllBookIds(page int, pageSize int) ([]string, error)
-	GetBookInfoById(bookid string) (Book, error)
-	GetBookFileIOReader(bookid string) (FileType, io.Reader, error)
-}
+// // 书籍库的访问接口
+// type BookLibraryServerAccessor interface {
+// 	GetAllBookIds(page int, pageSize int) ([]string, error)
+// 	GetBookInfoById(bookid string) (Book, error)
+// 	GetBookFileIOReader(bookid string) (FileType, io.Reader, error)
+// }
 
 // 用户鉴权用的上下文
 type UserContext struct {
 	JwtToken string
 }
 
-// 书籍库的管理接口
-type BookLibraryManageFunctions interface {
-	Authenticate(jwtToken string) (UserContext, error)
+// // 书籍库的管理接口
+// type BookLibraryManageFunctions interface {
+// 	Authenticate(jwtToken string) (UserContext, error)
 
-	AddBook(ctx UserContext, book Book) error // 添加书籍。书籍信息（Hash）务必准确，否则会导致文件无法访问而报错
+// 	AddBook(ctx UserContext, book Book) error // 添加书籍。书籍信息（Hash）务必准确，否则会导致文件无法访问而报错
 
-	UpdateBookInfo(ctx UserContext, book Book) error
-	DeleteBook(ctx UserContext, bookid string) error
-}
+// 	UpdateBookInfo(ctx UserContext, book Book) error
+// 	DeleteBook(ctx UserContext, bookid string) error
+// }
 
 // 初始化书籍库
 // 全局变量Bucket会在这里被设置.

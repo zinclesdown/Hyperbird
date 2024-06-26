@@ -13,68 +13,50 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// // 用户API接口,供前端用户调用
-// type userAPI interface {
-// 	apiLogin(c *gin.Context)         // 登录接口，返回用户上下文
-// 	apiGetAllBookIds(c *gin.Context) // 获取所有书籍 ID
-// 	apiGetBookInfo(c *gin.Context)   // 获取书籍信息
-// 	apiGetBookFile(c *gin.Context)   // 获取书籍文件
-// 	apiAlive(c *gin.Context)         // 保持连接
-// }
-
-// // 管理员API接口,供前端管理员调用
-// type adminAPI interface {
-// 	apiAuthenticate(c *gin.Context)   // 鉴权接口，返回用户上下文
-// 	apiAddBook(c *gin.Context)        // 添加书籍
-// 	apiUpdateBookInfo(c *gin.Context) // 更新书籍信息
-// 	apiDeleteBook(c *gin.Context)     // 删除书籍
-// }
-
-const ( // 用户/游客API地址
+// 前端调用的API地址
+const (
 	// API_USER_LOGIN               string = "/api/booklibrary/login"
 	// API_USER_GET_USER_INFO       string = "/api/booklibrary/getuserinfo"
-	API_USER_GET_BOOK_INFO_BY_ID string = "/api/book_library/get_book_info_by_id"
-	API_USE_GET_ALL_BOOK_IDS     string = "/api/book_library/get_all_bookids"
-	API_ALIVE                    string = "/api/book_library/"
+	// API_ADMIN_GET_ALL_BOOKS string = "/api/booklibrary/admin/getallbooks"
+	API_ALIVE string = "/api/book_library/" // 检查是否存活
 
-	API_GET_BOOKS_SHORT_INFO string = "/api/book_library/get_books_short_info" // 获取供列表界面预览的短信息
+	// 检查具体信息
+	API_USER_GET_BOOK_INFO_BY_ID string = "/api/book_library/get_book_info_by_id" // 根据ID信息，精准获取书籍信息. 接受参数：book_id
+
+	// 获取书籍信息列表相关
 	API_GET_BOOKS_INFO       string = "/api/book_library/get_books_info"       // 获取完整的书籍信息
+	API_GET_BOOKS_SHORT_INFO string = "/api/book_library/get_books_short_info" // 获取供列表界面预览的短信息
+	API_USE_GET_ALL_BOOK_IDS string = "/api/book_library/get_all_bookids"      // 获取所有保存的书籍的ID
 
-	API_SERVE_BOOK_FILE_BY_HASH string = "/api/book_library/serve_book_file_by_hash"
-	API_SERVE_BOOK_FILE_BY_ID   string = "/api/book_library/serve_book_file_by_id"
+	// 提供文件相关
+	API_SERVE_BOOK_FILE_BY_HASH string = "/api/book_library/serve_book_file_by_hash" // 提供书籍文件的流式,接受book_file_hash作为输入
+	API_SERVE_BOOK_FILE_BY_ID   string = "/api/book_library/serve_book_file_by_id"   // 提供书籍文件的流式,接受book_id作为输入
 
-	API_GET_BOOK_FIRST_PAGE_PDF string = "/api/book_library/get_book_first_page_pdf"
-)
-
-// apiServeBookFile
-
-const ( // 管理员/开发者API地址
-	API_ADMIN_GET_ALL_BOOKS string = "/api/booklibrary/admin/getallbooks"
+	// 预览相关
+	API_GET_BOOK_FIRST_PAGE_PDF string = "/api/book_library/get_book_first_page_pdf" // 获取书籍的首页PDF
 )
 
 // 注册监听相关的API。在服务器完全初始化后调用。 在server包里调用一次。
 func RegisterAPIs() {
-	color.Green("booklibrary::apis::RegisterAPIs()::开始注册了API...")
+	color.Cyan("booklibrary::apis::RegisterAPIs()::开始注册了API...")
 
 	ginserver.Listen(API_ALIVE, apiAlive, "图书馆系统Alive可用性测试API")
-	ginserver.Listen(API_USE_GET_ALL_BOOK_IDS, apiGetAllBookIds, "获取所有保存的书籍信息")
 	ginserver.Listen(API_USER_GET_BOOK_INFO_BY_ID, apiGetBookInfoById, "根据ID信息，精准获取书籍信息. 接受参数：book_id")
-
-	//apiGetBooksShortInfo
 	ginserver.Listen(API_GET_BOOKS_INFO, apiGetBooksInfo, "返回某一页的书籍ID与书籍的名称、图像等属性。接受参数：page:int, page_size:int.")
 	ginserver.Listen(API_GET_BOOKS_SHORT_INFO, apiGetBooksShortInfo, "返回某一页的书籍ID与书籍的名称、图像等属性。接受参数：page:int, page_size:int.")
-
-	//apiServeBookFile
+	ginserver.Listen(API_USE_GET_ALL_BOOK_IDS, apiGetAllBookIds, "获取所有保存的书籍信息")
 	ginserver.Listen(API_SERVE_BOOK_FILE_BY_HASH, apiServeBookFileByHash, "提供书籍文件的流式,接受book_file_hash作为输入")
 	ginserver.Listen(API_SERVE_BOOK_FILE_BY_ID, apiServeBookFileById, "提供书籍文件的流式,接受book_id作为输入")
 
-	// TEST!!!
+	// 个别PDF不能被正确提取，到底怎么回事？？？需要测试！！！ TEST REQUIRED
 	ginserver.Listen(API_GET_BOOK_FIRST_PAGE_PDF, apiGetBookFirstPagePdf, "获取书籍的首页PDF")
+
+	color.Green("booklibrary::apis::RegisterAPIs()::API注册完毕! ")
 }
 
-//
-// 以下函数供前端调用，注册于GIN服务器单例里。
-//
+// =================================================================================================
+// 								以下函数供前端调用，注册于GIN服务器单例里。
+// =================================================================================================
 
 func apiAlive(c *gin.Context) {
 	// 保持连接
