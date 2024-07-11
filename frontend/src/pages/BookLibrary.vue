@@ -39,7 +39,7 @@
 
     <!-- 显示图书的组件。调用 get_books_shortinfo(page:int, page_size:int)来获取书籍ID信息 -->
     <!-- 该方法返回 数组[BookShortInfo{book_id:string, book_name:string}] -->
-    <div id="books_displayer" class="bg-gray-200 m-4 p-16 rounded-3xl">
+    <div id="books_displayer" class="bg-gray-200 m-4 p-16 rounded-3xl text-gray-300">
       {{ curpageBooksInfo }}
     </div>
 

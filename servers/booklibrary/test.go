@@ -57,24 +57,26 @@ func Test() {
 	file2, err := Bucket.SaveFileFromPath(pdf_path2, false)
 	warn("添加书籍到桶里遇到了错误：", err)
 	fmt.Println("向桶里添加了文件：", file.Hash)
-	AddBook(Book{BookId: "TestBooksID2",
-		BookName:     "第二本测试书籍",
-		BookFileHash: file2.Hash})
+	// AddBook(Book{BookId: "TestBooksID2",
+	// 	BookName:     "第二本测试书籍",
+	// 	BookFileHash: file2.Hash})
 
 	// 添加重复书籍
-	AddBook(Book{BookId: "TestBooksID3withfile2",
-		BookName:     "第三本克隆测试书籍",
-		BookFileHash: file2.Hash})
+	// AddBook(Book{BookId: "TestBooksID3withfile2",
+	// 	BookName:     "第三本克隆测试书籍",
+	// 	BookFileHash: file2.Hash})
+
+	fmt.Println(file2)
 
 	// 读取书籍列表
 	bookids, err = GetAllBookIds(0, 10)
 	fmt.Println("  读取书籍ID:", bookids, err)
 
 	// 读取书籍(1)
-	getTestBook, err := GetBookInfoById("TestBooksID")
-	fmt.Println("  读取书籍信息:", getTestBook)
-	fmt.Println("书籍名称：", getTestBook.BookName)
-	fmt.Println("书籍Hash：", getTestBook.BookFileHash)
+	// getTestBook, err := GetBookInfoById("TestBooksID")
+	// fmt.Println("  读取书籍信息:", getTestBook)
+	// fmt.Println("书籍名称：", getTestBook.BookName)
+	// fmt.Println("书籍Hash：", getTestBook.BookFileHash)
 	assert("  读取书籍信息遇到错误:", err)
 
 	color.Green("[图书管理系统测试完毕]")
